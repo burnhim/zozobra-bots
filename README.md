@@ -1,2 +1,13 @@
 # zozobra-bots
-zozobra-bots
+
+Public Q&A chatbots for burnzozobra.com, produced by the Kiwanis Club of Santa Fe.
+
+| Bot | File |
+|---|---|
+| Ask Old Man Gloom (Zozobra) | ask-old-man-gloom.html |
+| Ask Miguel (Día de los Muertos) | ask-miguel.html |
+| Ask Father Time (New Year's Eve) | ask-father-time.html |
+| Ask Uncle Sam (Fourth of July) | ask-uncle-sam.html |
+| Zozobra the Balloon | ask-zozobra-balloon.html |
+
+Each file is served by GitHub Pages at https://burnhim.github.io/zozobra-bots/<file> and loaded by the pop-up buttons on burnzozobra.com. Editing a file here updates the bot on the site; the addresses never change.

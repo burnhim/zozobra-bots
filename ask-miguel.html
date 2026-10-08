@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ask Miguel · Pregúntale a Miguel</title>
+<link href="https://fonts.googleapis.com/css2?family=Macondo+Swash+Caps&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--purple:#5B2A86;--deep:#2E1447;--lilac:#C9A6EC;--black:#120A18;--orange:#F28C28;--marigold:#FFB13B;--cream:#FFF8EE;}
+*{box-sizing:border-box;}
+html,body{height:100%;margin:0;}
+body{font-family:'Lato',Helvetica,Arial,sans-serif;color:#1d1424;background:var(--cream);display:flex;flex-direction:column;}
+#bg{position:fixed;inset:0;background:url('https://burnzozobra.com/wp-content/uploads/2026/09/Dia_Logo_Recolored_Transparent.png') center 45% / 70% no-repeat;opacity:.07;pointer-events:none;}
+#bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px 0;position:relative;z-index:2;flex:0 0 auto;}
+#bar button{background:var(--purple);color:#fff;-webkit-text-fill-color:#fff;border:0;border-radius:16px;padding:7px 16px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;}
+#bar button:hover{background:var(--orange);color:var(--black);-webkit-text-fill-color:var(--black);}
+#bar #ver{font-size:11px;font-weight:700;color:var(--purple);-webkit-text-fill-color:var(--purple);letter-spacing:.5px;}
+#chat{flex:1 1 auto;overflow-y:auto;padding:16px;position:relative;z-index:1;}
+.msg{max-width:88%;padding:12px 15px;border-radius:16px;margin-bottom:12px;line-height:1.55;font-size:15.5px;white-space:pre-line;}
+.bot{background:#fff;border:2px solid var(--lilac);border-top-left-radius:4px;color:#1d1424;}
+.me{background:var(--purple);color:#fff;margin-left:auto;border-top-right-radius:4px;}
+.bot b{color:var(--purple);}
+#chips{padding:0 16px 10px;display:flex;flex-wrap:wrap;gap:8px;position:relative;z-index:1;flex:0 0 auto;}
+#chips button{background:#fff;border:2px solid var(--purple);color:var(--purple);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+#chips button:hover{background:var(--purple);color:#fff;}
+form{display:flex;gap:8px;padding:12px 16px;background:var(--deep);flex:0 0 auto;position:relative;z-index:1;}
+input{flex:1;border:0;border-radius:24px;padding:12px 16px;font-size:15px;font-family:inherit;color:#1d1424;background:#fff;}
+form button{background:var(--orange);color:var(--black);border:0;border-radius:24px;padding:12px 20px;font-weight:700;cursor:pointer;font-size:15px;font-family:inherit;}
+footer{background:var(--deep);color:#fff;-webkit-text-fill-color:#fff;text-align:center;font-size:11.5px;padding:0 16px 10px;position:relative;z-index:1;flex:0 0 auto;}
+footer a{color:var(--marigold);-webkit-text-fill-color:var(--marigold);}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<div id="bar">
+<button id="lang" type="button">Español</button>
+<span id="ver">v5</span>
+</div>
+<div id="chat"></div>
+<div id="chips"></div>
+<form id="f" autocomplete="off">
+<input id="q" placeholder="Ask me anything about Día de los Muertos…">
+<button type="submit" id="send">Send</button>
+</form>
+<footer id="foot">Día de los Muertos Santa Fe · <b>v5</b> · Kiwanis Club of Santa Fe · <a href="tel:8559696272">1-855-ZOZOBRA</a></footer>
+
+<script>
+var EN = {
+  hdr:"Ask Miguel", lang:"Español", ph:"Ask me anything about Día de los Muertos…", send:"Send",
+  foot:'Día de los Muertos Santa Fe · <b>v5</b> · Kiwanis Club of Santa Fe · <a href="tel:8559696272">1-855-ZOZOBRA</a>',
+  hello:"¡Hola! I'm Miguel. Ask me anything about Día de los Muertos on the Santa Fe Plaza — dates, music, parking, the parade, the ofrendas, anything at all.\n\nPuedes preguntarme en español también: toca el botón de arriba.",
+  chips:["When is it?","Who's playing?","Flor de Toloache","Man Boy Brown","Is it free?","Parking","Schedule","Ofrendas"],
+  fallback:"I'm not sure about that one. Try asking about the dates, the music lineup, the schedule, parking, the ofrendas, face painting, the Coco screening, the candlelight parade, food, or how to help support the event. You can also call 1-855-ZOZOBRA or email burnhim@burnzozobra.com.",
+  kb:[
+   {k:["when","date","what day","dates","october","hours","what time","open","start"],
+    a:"Día de los Muertos Santa Fe is Friday, October 30 and Saturday, October 31, 2026, on the historic Santa Fe Plaza.\n\nFriday: 4:00 – 10:00 p.m.\nSaturday: 11:00 a.m. – 10:00 p.m."},
+   {k:["free","cost","ticket","admission","price","how much"],
+    a:"It's always free and open to all — no tickets needed. The celebration is paid for by public support, sponsors and donors. You can help keep it free at burnzozobra.com/diahelp."},
+   {k:["who","playing","music","band","lineup","line up","perform","concert","toloache","man boy","nosotros","rob martinez","tios","live"],
+    a:"Two nights of free live music:\n\nFRIDAY, OCT 30\n5:25 – 6:10 p.m. Rob Martinez\n6:20 – 7:10 p.m. Tíos Míos\n7:25 – 8:35 p.m. Flor de Toloache (Latin GRAMMY winners)\n8:50 – 9:55 p.m. Nosotros\n\nSATURDAY, OCT 31\n8:30 – 10:15 p.m. Man Boy Brown, featuring Raul Pacheco of GRAMMY winners Ozomatli\n\nAsk me about any of them by name."},
+   {k:["schedule","program","agenda","lineup of events","what's happening","happening","times","timeline"],
+    a:"FRIDAY, OCT 30 (4 – 10 p.m.)\n4:40 p.m. Día de los Muertos film\n5:00 p.m. Welcome remarks\n5:25 p.m. Rob Martinez\n6:20 p.m. Tíos Míos\n7:25 p.m. Flor de Toloache\n8:50 p.m. Nosotros\n\nSATURDAY, OCT 31 (11 a.m. – 10 p.m.)\n11:00 a.m. Mariachi\n12:00 p.m. Ofrenda adornment\n1:30 p.m. Día de los Muertos films\n2:00 p.m. Free face painting (until 8)\n5:00 p.m. Ballet Folklorico Santa Fe\n5:20 p.m. Teatro Paraguas\n5:50 p.m. Las Catrinas\n6:05 p.m. “Coco” on two big screens\n7:50 p.m. Welcome remarks\n8:00 p.m. Aztec blessing\n8:15 p.m. Candlelight parade\n8:30 p.m. Man Boy Brown\n10:15 p.m. Closing remarks"},
+   {k:["flor de toloache","toloache","flor","mariachi women","all-women","mireya","shae"],
+    a:"Flor de Toloache plays Friday, October 30, from 7:25 to 8:35 p.m.\n\nLed by Mireya Ramos and Shae Fiol, they were founded in 2008 as New York City's first all-women mariachi and went from subway platforms and dive bars to NPR's Tiny Desk, the White House and the Kennedy Center Honors tribute to Linda Ronstadt. They've recorded with Alicia Keys, John Legend, Miguel, Natalia Lafourcade and Dan Auerbach of The Black Keys, and played Coachella, Austin City Limits and Newport Folk. With “Las Caras Lindas” they became the first all-women group to win Best Ranchero Album at the Latin GRAMMYs."},
+   {k:["man boy brown","manboy","raul pacheco","pacheco","ozomatli"],
+    a:"Man Boy Brown closes the celebration Saturday, October 31, from 8:30 to 10:15 p.m.\n\nMan Boy Brown is the alter ego of Raul Pacheco, the vocalist, guitarist and songwriter who co-founded the three-time GRAMMY-winning Los Angeles band Ozomatli 30 years ago. His first solo album is steeped in romantic Latin ballads and Mexican corridos, with spare arrangements that let the songs breathe. Expect Latin rhythms, rock and a lot of soul under the lights."},
+   {k:["rob martinez","martinez"],
+    a:"Rob Martinez opens Friday night, October 30, from 5:25 to 6:10 p.m. on the Santa Fe Bandstand."},
+   {k:["tios mios","tios","mios","tíos"],
+    a:"Tíos Míos play Friday, October 30, from 6:20 to 7:10 p.m. — fiddle, guitar and close harmony on the Plaza."},
+   {k:["nosotros"],
+    a:"Nosotros closes out Friday night, October 30, from 8:50 to 9:55 p.m., with a full horn section."},
+   {k:["park","parking","garage","drive","meter"],
+    a:"There's no dedicated event parking. Use the City's downtown public garages, lots or metered street parking and walk a few blocks to the Plaza. Saturday is Halloween night and downtown gets busy, so come early."},
+   {k:["ofrenda","altar","altars","honor","remember","photo of my"],
+    a:"The ofrendas are community altars built and decorated by local families, businesses and organizations to remember loved ones who have passed. Come visit them on the Plaza, or sponsor and adorn your own — starter kits are available, and you can begin at burnzozobra.com/diahelp. Adornment runs Saturday from noon to 4 p.m."},
+   {k:["coco","movie","film","screening","jumbotron"],
+    a:"The Disney classic “Coco” screens free on Saturday at 6:05 p.m. on two jumbotron screens, thanks to the Lensic Center for the Performing Arts. Bring a chair or a blanket — it runs about an hour and 45 minutes."},
+   {k:["parade","candlelight","mojiganga","catrina","procession"],
+    a:"The glow-in-the-dark Candlelight Parade steps off Saturday at 8:15 p.m., led by Las Catrinas and the mojigangas — 8-foot Mexican puppets. Parade instructions are given at 7:55 p.m., right after the welcome remarks, and everyone is welcome to join in."},
+   {k:["face","paint","painting","calavera makeup","makeup"],
+    a:"Free glow-in-the-dark face painting is available Saturday from 2:00 to 8:00 p.m. on the Plaza. Come get your calavera face on before the parade."},
+   {k:["kid","kids","child","children","family","baby","stroller"],
+    a:"Very much a family event. There are free arts and crafts for kids from the Santa Fe Public Library and the Mexican Consulate in Albuquerque, free face painting from 2 to 8 p.m. Saturday, and the free “Coco” screening at 6:05 p.m."},
+   {k:["food","eat","vendor","vendors","drink","restaurant","hungry"],
+    a:"Food vendors serving regional and traditional Mexican dishes will be on the Plaza both days. This year's vendor list is being finalized and will be posted at burnzozobra.com/dia soon."},
+   {k:["route 66","route66","car","cars","classic","mother road","66"],
+    a:"Route 66 turns 100 this year, and for its first decade it ran right through the heart of Santa Fe. To mark the centennial, this year's celebration comes with Route 66 flair and classic cars on the Plaza — chrome and vintage steel alongside marigolds, candlelight and calaveras."},
+   {k:["where","location","plaza","address","held","map"],
+    a:"On the historic Santa Fe Plaza, in the center of downtown Santa Fe, New Mexico."},
+   {k:["accessib","wheelchair","ada","disab","service animal","interpreter","deaf"],
+    a:"The Plaza is a flat public park with paved walkways, and service animals are welcome. For specific accommodations, call 1-855-ZOZOBRA (855-969-6272) ahead of time and we'll do our best to help."},
+   {k:["weather","cold","rain","wear","bring","dress"],
+    a:"Late-October evenings in Santa Fe get cold, so bring warm layers, plus a chair or blanket for the film. The celebration goes on rain or shine. Dress festive, come with your calavera face painted, or come as you are."},
+   {k:["moifa","museum","folk art","museum hill"],
+    a:"The Museum of International Folk Art on Museum Hill holds its own free Día de los Muertos program, with sugar skull decorating, face painting, folk dance by Los Niños de Santa Fe and pan de muerto. The date is still to be confirmed — check internationalfolkart.org/events."},
+   {k:["sponsor","donate","help","support","volunteer","give"],
+    a:"Thank you! You can sponsor an ofrenda or donate to keep the event free at burnzozobra.com/diahelp. To volunteer or talk about sponsorship, email burnhim@burnzozobra.com or call 1-855-ZOZOBRA."},
+   {k:["contact","phone","email","press","media","interview"],
+    a:"General questions: burnhim@burnzozobra.com or 1-855-ZOZOBRA.\nPress passes, photos and interviews: Deputy@burnzozobra.com.\nThe event chair is Raymond G. Sandoval of the Kiwanis Club of Santa Fe."},
+   {k:["who runs","kiwanis","organiz","produce","city","behind"],
+    a:"The Kiwanis Club of Santa Fe produces Día de los Muertos on the Plaza in partnership with the City of Santa Fe. The club also produces the Burning of Will Shuster's Zozobra, Santa Fe's Fourth of July and New Year's Eve on the Plaza."},
+   {k:["what is dia","what is día","meaning","tradition","history","why","about"],
+    a:"Día de los Muertos is a deeply rooted tradition of honoring the generations before us. The belief is that spirits return to the world of the living one day each year to be with their families, and the living welcome them home with ofrendas — altars holding their favorite foods, drinks, photos and mementos. Santa Fe's Plaza celebration was first held in October 2022."},
+   {k:["dog","pet","animal"],
+    a:"Service animals are always welcome. The Plaza is crowded and loud with music and crowds at night, so it's kinder to leave other pets at home."},
+   {k:["hola","hello","hi","hey","buenas","who are you","your name","miguel"],
+    a:"¡Hola! I'm Miguel, your guide to Día de los Muertos on the Santa Fe Plaza. Ask me about the dates, the music, the schedule, parking, the ofrendas, or anything else."},
+   {k:["thank","gracias","thanks"],
+    a:"¡De nada! Nos vemos en la Plaza. 💀🌼"}
+  ]
+};
+var ES = {
+  hdr:"Pregúntale a Miguel", lang:"English", ph:"Pregúntame lo que quieras sobre el Día de los Muertos…", send:"Enviar",
+  foot:'Día de los Muertos Santa Fe · <b>v5</b> · Kiwanis Club de Santa Fe · <a href="tel:8559696272">1-855-ZOZOBRA</a>',
+  hello:"¡Hola! Soy Miguel. Pregúntame lo que quieras sobre el Día de los Muertos en la Plaza de Santa Fe: fechas, música, estacionamiento, el desfile, las ofrendas, lo que sea.\n\nYou can also ask me in English — tap the button above.",
+  chips:["¿Cuándo es?","¿Quién toca?","Flor de Toloache","Man Boy Brown","¿Es gratis?","Estacionamiento","Programa","Ofrendas"],
+  fallback:"No estoy seguro de eso. Pregúntame sobre las fechas, la música, el programa, el estacionamiento, las ofrendas, la pintura de caras, la película “Coco”, el desfile de velas, la comida o cómo apoyar el evento. También puedes llamar al 1-855-ZOZOBRA o escribir a burnhim@burnzozobra.com.",
+  kb:[
+   {k:["cuando","cuándo","fecha","fechas","día","dia","octubre","horario","hora","abre","empieza"],
+    a:"El Día de los Muertos Santa Fe es el viernes 30 y el sábado 31 de octubre de 2026, en la histórica Plaza de Santa Fe.\n\nViernes: 4:00 – 10:00 p.m.\nSábado: 11:00 a.m. – 10:00 p.m."},
+   {k:["gratis","gratuito","costo","boleto","precio","cuánto","cuanto","entrada"],
+    a:"Siempre es gratis y abierto a todo el público — no se necesitan boletos. El evento es posible gracias al apoyo público, los patrocinadores y los donantes. Puede ayudar a mantenerlo gratuito en burnzozobra.com/diahelp."},
+   {k:["quien","quién","toca","música","musica","banda","grupo","cartel","toloache","man boy","nosotros","rob martinez","tios","tíos","vivo"],
+    a:"Dos noches de música en vivo gratuita:\n\nVIERNES 30 DE OCTUBRE\n5:25 – 6:10 p.m. Rob Martinez\n6:20 – 7:10 p.m. Tíos Míos\n7:25 – 8:35 p.m. Flor de Toloache (ganadoras del Latin GRAMMY)\n8:50 – 9:55 p.m. Nosotros\n\nSÁBADO 31 DE OCTUBRE\n8:30 – 10:15 p.m. Man Boy Brown, con Raul Pacheco de Ozomatli, ganadores del GRAMMY\n\nPregúntame por cualquiera de ellos por su nombre."},
+   {k:["programa","agenda","itinerario","horarios","qué hay","que hay","actividades"],
+    a:"VIERNES 30 (4 – 10 p.m.)\n4:40 p.m. Película del Día de los Muertos\n5:00 p.m. Palabras de bienvenida\n5:25 p.m. Rob Martinez\n6:20 p.m. Tíos Míos\n7:25 p.m. Flor de Toloache\n8:50 p.m. Nosotros\n\nSÁBADO 31 (11 a.m. – 10 p.m.)\n11:00 a.m. Mariachi\n12:00 p.m. Adornamiento de ofrendas\n1:30 p.m. Películas del Día de los Muertos\n2:00 p.m. Pintura de caras gratuita (hasta las 8)\n5:00 p.m. Ballet Folklórico Santa Fe\n5:20 p.m. Teatro Paraguas\n5:50 p.m. Las Catrinas\n6:05 p.m. “Coco” en dos pantallas gigantes\n7:50 p.m. Palabras de bienvenida\n8:00 p.m. Bendición azteca\n8:15 p.m. Desfile de velas\n8:30 p.m. Man Boy Brown\n10:15 p.m. Comentarios finales"},
+   {k:["flor de toloache","toloache","flor","mariachi femenil","mireya","shae"],
+    a:"Flor de Toloache se presenta el viernes 30 de octubre, de 7:25 a 8:35 p.m.\n\nEncabezado por Mireya Ramos y Shae Fiol, el grupo se fundó en 2008 como el primer mariachi femenil de la Ciudad de Nueva York y pasó de los andenes del metro a NPR Tiny Desk, la Casa Blanca y el homenaje a Linda Ronstadt de los Kennedy Center Honors. Han grabado con Alicia Keys, John Legend, Miguel, Natalia Lafourcade y Dan Auerbach de The Black Keys, y se han presentado en Coachella, Austin City Limits y Newport Folk. Con “Las Caras Lindas” fueron el primer grupo femenil en ganar Mejor Álbum Ranchero en los Latin GRAMMY."},
+   {k:["man boy brown","manboy","raul pacheco","pacheco","ozomatli"],
+    a:"Man Boy Brown cierra la celebración el sábado 31 de octubre, de 8:30 a 10:15 p.m.\n\nMan Boy Brown es el alter ego de Raul Pacheco, vocalista, guitarrista y compositor que hace 30 años cofundó Ozomatli, la banda angelina ganadora de tres GRAMMY. Su primer álbum como solista está impregnado de baladas latinas románticas y corridos mexicanos, con arreglos espaciosos. Esperen ritmos latinos, rock y mucho sabor bajo las luces."},
+   {k:["rob martinez","martinez"],
+    a:"Rob Martinez abre la noche del viernes 30 de octubre, de 5:25 a 6:10 p.m., en el quiosco de la Plaza."},
+   {k:["tios mios","tios","mios","tíos"],
+    a:"Tíos Míos se presentan el viernes 30 de octubre, de 6:20 a 7:10 p.m. — violín, guitarra y armonías en la Plaza."},
+   {k:["nosotros"],
+    a:"Nosotros cierra la noche del viernes 30 de octubre, de 8:50 a 9:55 p.m., con sección completa de metales."},
+   {k:["estacion","parqueo","carro","auto","manejar","parquímetro","parquimetro"],
+    a:"No hay estacionamiento exclusivo para el evento. Use los estacionamientos públicos del centro o los parquímetros y camine unas cuadras hasta la Plaza. El sábado es noche de Halloween y el centro se llena, así que llegue temprano."},
+   {k:["ofrenda","ofrendas","altar","altares","honrar","recordar"],
+    a:"Las ofrendas son altares comunitarios construidos y decorados por familias, negocios y organizaciones locales para recordar a sus seres queridos. Visítelas en la Plaza o patrocine y adorne la suya — hay juegos de ofrenda disponibles y puede comenzar en burnzozobra.com/diahelp. El adornamiento es el sábado de 12 a 4 p.m."},
+   {k:["coco","película","pelicula","filme","pantalla","proyección","proyeccion"],
+    a:"La clásica película de Disney “Coco” se proyecta gratis el sábado a las 6:05 p.m. en dos pantallas gigantes, gracias al Lensic Center for the Performing Arts. Traiga silla o cobija — dura alrededor de una hora y 45 minutos."},
+   {k:["desfile","velas","mojiganga","catrina","procesión","procesion"],
+    a:"El desfile de velas que brillan en la oscuridad comienza el sábado a las 8:15 p.m., encabezado por Las Catrinas y las mojigangas, marionetas mexicanas de 8 pies. Las instrucciones se dan a las 7:55 p.m. y todos pueden participar."},
+   {k:["cara","pintura","maquillaje","calavera pintada"],
+    a:"La pintura de caras que brilla en la oscuridad es gratuita el sábado de 2:00 a 8:00 p.m. en la Plaza. Venga a pintarse la calavera antes del desfile."},
+   {k:["niño","niños","nino","ninos","familia","hijos","bebé","bebe"],
+    a:"Es un evento muy familiar. Hay actividades de arte y manualidades gratuitas para niños de la Biblioteca Pública de Santa Fe y el Consulado de México en Albuquerque, pintura de caras gratuita el sábado de 2 a 8 p.m., y la proyección gratuita de “Coco” a las 6:05 p.m."},
+   {k:["comida","comer","vendedor","vendedores","bebida","hambre","antojitos"],
+    a:"Habrá vendedores de comida regional y mexicana tradicional en la Plaza los dos días. La lista de este año se está finalizando y se publicará pronto en burnzozobra.com/dia-es."},
+   {k:["ruta 66","ruta66","carro clásico","autos clásicos","clásico","clasico","carretera madre","66"],
+    a:"La Ruta 66 cumple 100 años este año y, durante su primera década, pasaba por el corazón de Santa Fe. Para celebrar el centenario, este año habrá aires de la Ruta 66 y autos clásicos en la Plaza: cromo y acero de antaño junto a cempasúchil, velas y calaveras."},
+   {k:["dónde","donde","lugar","plaza","dirección","direccion","mapa"],
+    a:"En la histórica Plaza de Santa Fe, en el centro de Santa Fe, Nuevo México."},
+   {k:["accesib","silla de ruedas","discapac","animal de servicio","intérprete","interprete","sordo"],
+    a:"La Plaza es un parque público plano con andadores pavimentados y los animales de servicio son bienvenidos. Para necesidades específicas, llame con anticipación al 1-855-ZOZOBRA (855-969-6272) y con gusto le ayudamos."},
+   {k:["clima","frío","frio","lluvia","qué me pongo","que me pongo","ropa","llevar"],
+    a:"Las noches de finales de octubre en Santa Fe son frías: traiga ropa abrigadora y una silla o cobija para la película. El evento se realiza llueva o truene. Venga con atuendo festivo, con la cara pintada de calavera o tal como es."},
+   {k:["moifa","museo","arte popular","museum hill"],
+    a:"El Museo Internacional de Arte Popular, en Museum Hill, tiene su propio programa gratuito del Día de los Muertos, con decoración de calaveras de azúcar, pintura de caras, danza folclórica de Los Niños de Santa Fe y pan de muerto. La fecha aún está por confirmarse — consulte internationalfolkart.org/events."},
+   {k:["patrocin","donar","donación","donacion","apoyar","ayudar","voluntario"],
+    a:"¡Gracias! Puede patrocinar una ofrenda o donar para mantener el evento gratuito en burnzozobra.com/diahelp. Para ser voluntario o hablar de patrocinios, escriba a burnhim@burnzozobra.com o llame al 1-855-ZOZOBRA."},
+   {k:["contacto","teléfono","telefono","correo","prensa","medios","entrevista"],
+    a:"Preguntas generales: burnhim@burnzozobra.com o 1-855-ZOZOBRA.\nPases de prensa, fotografías y entrevistas: Deputy@burnzozobra.com.\nEl presidente del evento es Raymond G. Sandoval, del Kiwanis Club de Santa Fe."},
+   {k:["quién organiza","quien organiza","kiwanis","ciudad","produce","organizador"],
+    a:"El Kiwanis Club de Santa Fe produce el Día de los Muertos en la Plaza, en colaboración con la Ciudad de Santa Fe. El club también produce la Quema de Zozobra de Will Shuster, el Cuatro de Julio de Santa Fe y la Nochevieja en la Plaza."},
+   {k:["qué es","que es","significa","tradición","tradicion","historia","por qué","por que"],
+    a:"El Día de los Muertos es una tradición profundamente arraigada que honra a las generaciones que nos precedieron. Se cree que los espíritus regresan al mundo de los vivos un día al año para reunirse con sus familias, y los vivos les dan la bienvenida con ofrendas: altares con sus comidas, bebidas, fotografías y recuerdos favoritos. La celebración en la Plaza de Santa Fe se realizó por primera vez en octubre de 2022."},
+   {k:["perro","mascota","animal"],
+    a:"Los animales de servicio siempre son bienvenidos. La Plaza se llena de gente y la música es fuerte por la noche, así que es mejor dejar a las demás mascotas en casa."},
+   {k:["hola","buenas","quién eres","quien eres","tu nombre","miguel","qué tal","que tal"],
+    a:"¡Hola! Soy Miguel, su guía del Día de los Muertos en la Plaza de Santa Fe. Pregúnteme sobre las fechas, la música, el programa, el estacionamiento, las ofrendas o lo que guste."},
+   {k:["gracias","muchas gracias"],
+    a:"¡De nada! Nos vemos en la Plaza. 💀🌼"}
+  ]
+};
+
+var L = (location.search.indexOf('lang=es') > -1) ? ES : EN;
+var chat = document.getElementById('chat');
+
+function norm(s){return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
+
+function answer(text){
+  var q = norm(text), best = null, score = 0;
+  for (var i=0;i<L.kb.length;i++){
+    var s = 0;
+    for (var j=0;j<L.kb[i].k.length;j++){
+      var key = norm(L.kb[i].k[j]);
+      if (q.indexOf(key) > -1) s += key.length;
+    }
+    if (s > score){ score = s; best = L.kb[i]; }
+  }
+  return best ? best.a : L.fallback;
+}
+
+function add(text, who){
+  var d = document.createElement('div');
+  d.className = 'msg ' + who;
+  d.textContent = text;
+  chat.appendChild(d);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function chips(){
+  var box = document.getElementById('chips');
+  box.innerHTML = '';
+  L.chips.forEach(function(c){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = c;
+    b.onclick = function(){ ask(c); };
+    box.appendChild(b);
+  });
+}
+
+function ask(text){
+  add(text,'me');
+  setTimeout(function(){ add(answer(text),'bot'); }, 280);
+}
+
+function paint(){
+  document.getElementById('lang').textContent = L.lang;
+  document.getElementById('q').placeholder = L.ph;
+  document.getElementById('send').textContent = L.send;
+  document.getElementById('foot').innerHTML = L.foot;
+  document.documentElement.lang = (L === ES) ? 'es' : 'en';
+  chat.innerHTML = '';
+  add(L.hello,'bot');
+  chips();
+}
+
+document.getElementById('lang').onclick = function(){
+  L = (L === EN) ? ES : EN;
+  paint();
+};
+
+document.getElementById('f').onsubmit = function(e){
+  e.preventDefault();
+  var v = document.getElementById('q').value.trim();
+  if (!v) return;
+  document.getElementById('q').value = '';
+  ask(v);
+};
+
+paint();
+</script>
+</body>
+</html>
