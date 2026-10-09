@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ask the Vendor Desk · Kiwanis Club of Santa Fe</title>
+<link href="https://fonts.googleapis.com/css2?family=Rye&family=Bitter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#FBF6EC;--ink:#1E1A16;--red:#E8192B;--deep:#9E1420;--brown:#4A2412;--line:#E2D6C2;--orange:#E87722;--sand:#F3E7D0;}
+*{box-sizing:border-box;}
+html,body{height:100%;margin:0;}
+body{font-family:'Bitter',Georgia,serif;color:var(--ink);background:var(--paper);display:flex;flex-direction:column;}
+#bg{position:fixed;inset:0;background:url('https://burnzozobra.com/wp-content/uploads/2026/09/Zozo-103-scaled.png') center 45% / 60% no-repeat;opacity:.06;pointer-events:none;}
+#bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px 0;position:relative;z-index:2;flex:0 0 auto;}
+#bar h1{font-family:'Rye',Georgia,serif;font-weight:400;font-size:20px;margin:0;color:var(--brown);}
+#bar .r{display:flex;align-items:center;gap:10px;}
+#bar button{background:var(--red);color:#fff;-webkit-text-fill-color:#fff;border:0;border-radius:16px;padding:7px 16px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;}
+#bar button:hover{background:var(--deep);}
+#ver{font-size:11px;font-weight:700;color:var(--deep);letter-spacing:.5px;}
+#chat{flex:1 1 auto;overflow-y:auto;padding:16px;position:relative;z-index:1;}
+.msg{max-width:88%;padding:12px 15px;border-radius:16px;margin-bottom:12px;line-height:1.55;font-size:15.5px;white-space:pre-line;}
+.bot{background:#fff;border:2px solid var(--line);border-top-left-radius:4px;color:var(--ink);}
+.me{background:var(--red);color:#fff;margin-left:auto;border-top-right-radius:4px;}
+#chips{padding:0 16px 10px;display:flex;flex-wrap:wrap;gap:8px;position:relative;z-index:1;flex:0 0 auto;}
+#chips button{background:#fff;border:2px solid var(--red);color:var(--deep);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+#chips button:hover{background:var(--red);color:#fff;}
+form{display:flex;gap:8px;padding:12px 16px;background:var(--brown);flex:0 0 auto;position:relative;z-index:1;}
+input{flex:1;border:0;border-radius:24px;padding:12px 16px;font-size:15px;font-family:inherit;color:var(--ink);background:#fff;}
+form button{background:var(--orange);color:#fff;border:0;border-radius:24px;padding:12px 20px;font-weight:700;cursor:pointer;font-size:15px;font-family:inherit;}
+form button:hover{background:var(--red);}
+footer{background:var(--brown);color:#fff;-webkit-text-fill-color:#fff;text-align:center;font-size:11.5px;padding:0 16px 10px;position:relative;z-index:1;flex:0 0 auto;}
+footer a{color:#FFD7A8;-webkit-text-fill-color:#FFD7A8;}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<div id="bar">
+<h1 id="hdr">Ask the Vendor Desk</h1>
+<span class="r"><span id="ver">v1</span><button id="lang" type="button">Español</button></span>
+</div>
+<div id="chat"></div>
+<div id="chips"></div>
+<form id="f" autocomplete="off">
+<input id="q" placeholder="Ask about vending at our events…">
+<button type="submit" id="send">Send</button>
+</form>
+<footer id="foot"></footer>
+
+<script>
+var APPLY = "burnzozobra.com/vendors";
+var EMAIL = "vendors@burnzozobra.com";
+
+var EN = {
+  hdr:"Ask the Vendor Desk", lang:"Español", ph:"Ask about vending at our events…", send:"Send",
+  foot:'Kiwanis Club of Santa Fe Vendor Program · <b>v1</b> · <a href="mailto:vendors@burnzozobra.com">vendors@burnzozobra.com</a>',
+  hello:"Hi! I answer questions about being a vendor at New Year's Eve on the Santa Fe Plaza, the Fourth of July, and the Burning of Zozobra. Ask me about fees, the deposit, deadlines, insurance, food permits, or how to apply.\n\nPuedes preguntarme en español también: toca el botón de arriba.",
+  chips:["How do I apply?","Fees","Deposit","Deadlines","Insurance","Food permits","Getting my deposit back","Nonprofit tables"],
+  fallback:"I'm not sure about that one. Try asking about fees, the deposit, deadlines, insurance, food permits, CRS numbers, setup times, placement, or how to apply. For anything else, email " + EMAIL + " with your business name and the event.",
+  kb:[
+   {k:["apply","application","sign up","signup","register","how do i","become a vendor","be a vendor","get a booth","form"],
+    a:"Apply, sign and pay online at " + APPLY + ".\n\nChoose your event, upload your documents, e-sign the vendor policies, the cleanup deposit terms and the Vendor Indemnification Agreement, and pay by card. It takes about 15 minutes. Have your certificate of insurance and CRS number ready before you start.\n\nOne application per event."},
+   {k:["fee","fees","cost","price","how much","booth fee","pay","charge"],
+    a:"Booth fees, plus a refundable cleanup deposit of 40% of the booth fee:\n\n• New Year's Eve on the Santa Fe Plaza: $500 + $200 deposit\n• Fourth of July: $700 + $280 deposit per booth\n• Burning of Zozobra: $1,450 + $580 deposit per booth\n• Zozobra, two or more booths: $1,400 + $560 deposit per booth\n• Zozobra nonprofit or agency information table: $500 + $200 deposit\n\nThe form adds it up for you and shows the booth fee and the deposit separately before you pay."},
+   {k:["multiple booth","multi","two booths","2 booths","more than one booth","several booths"],
+    a:"At the Burning of Zozobra, vendors with two or more booths pay the multi-booth rate: $1,400 per booth plus a $560 deposit per booth. Enter the number of booths on the application and the form calculates it."},
+   {k:["deposit","40%","40 percent","refundable"],
+    a:"Every vendor pays a refundable cleanup deposit equal to 40% of the booth fee, charged with your booth fee when you apply.\n\nYou get it back, to the card you paid with, within 4 to 6 weeks after the City clears the spaces, if you leave your space clean. Ask me \"how do I get my deposit back?\" for the full list."},
+   {k:["deposit back","get my deposit back","get my deposit","refund my deposit","deposit refund","when do i get","cleanup","clean up","clean","trash","grease","waste"],
+    a:"To get your full deposit back, leave your space exactly as you found it:\n\n• No food waste or perishables, including ice and condiments\n• No paper or packaging waste\n• No boxes, cardboard, crates or pallets\n• No grease, oil, gray water or ice melt on the ground or down drains. Grease goes only in the barrels we provide\n• No stains or spills\n• No debris: zip ties, tape, cigarette butts, tar paper, mats\n• All your equipment out by the move-out deadline\n\nKiwanis may keep part or all of the deposit to cover cleanup. If the City or Parks charges us to clean your space or dispose of your waste, or issues a fine, you pay those charges, even beyond your deposit.\n\nRefunds go to your card within 4 to 6 weeks. If too much time has passed for a card refund, we send it by Venmo, PayPal (fee applies), Cash App, Apple Pay or Zelle, whichever you chose on the form."},
+   {k:["venmo","paypal","zelle","cash app","cashapp","apple pay"],
+    a:"Deposits are refunded to the card you paid with. Only if too much time has passed for a card refund do we use the backup you picked on the form: Venmo, PayPal (fee applies), Cash App, Apple Pay or Zelle."},
+   {k:["deadline","due","last day","too late","cutoff","cut off","late"],
+    a:"Booth reservation deadlines:\n\n• Fourth of July: June 6, 2027\n• Burning of Zozobra: July 6, 2027\n• New Year's Eve on the Plaza: apply early. Space on the Plaza is limited.\n\nAfter a deadline we can't add vendors, because the vendor list goes to the City and State. If you missed one, we'd love to have you at the next event."},
+   {k:["when","date","dates","where","location","what events","which events","events","opportunit"],
+    a:"Vendor opportunities:\n\n• New Year's Eve on the Santa Fe Plaza: Thursday, December 31, 2026\n• Fourth of July: Sunday, July 4, 2027, Franklin E. Miles Park\n• 103rd Burning of Zozobra: Friday, September 3, 2027, Fort Marcy Park\n\nArtisans for Día de los Muertos (Oct. 30–31, Santa Fe Plaza) sell through the Kiwanis merchandise booth. Details at " + APPLY + "."},
+   {k:["insurance","coi","certificate of insurance","liability","additional insured","insured"],
+    a:"Every vendor needs a certificate of insurance for general liability, including nonprofits and info tables.\n\n• Certificate holder and additional insured: Kiwanis Club of Santa Fe, PO Box 622, Santa Fe, NM 87504\n• Also name the City of Santa Fe as additional insured\n\nYou upload it with your application, so ask your insurance agent a few days ahead."},
+   {k:["crs","grt","gross receipts","tax number","tax id","btin"],
+    a:"Every vendor that sells anything needs a New Mexico CRS (gross receipts tax) number. Information-only booths that sell nothing can type \"info only\" on the form."},
+   {k:["food permit","permit","nmed","tfe","temporary food","health permit","catering","mobile permit","environment department"],
+    a:"Food and beverage vendors need one of these from the New Mexico Environment Department (NMED):\n\n• A Catering or Mobile food permit, or\n• A Temporary Food Establishment (TFE) application filed with NMED\n\nThe City only accepts Catering or Mobile permits; everyone else files a TFE. Upload your permit with the application if you have it, or send it to " + EMAIL + " before the deadline we give you. Your booth isn't confirmed until we have it."},
+   {k:["food handler","handler","food safety","certificate"],
+    a:"Food and beverage vendors upload food handler certificates for their staff with the application. If you don't have them yet, email them to " + EMAIL + " before your booth is confirmed."},
+   {k:["alcohol","beer","wine","liquor","spirits","beer garden"],
+    a:"Anyone selling beer, wine or spirits must provide a liquor license and proof of alcohol security. The City requires both for all alcohol sales. Choose \"Alcohol\" as your vendor type and the form asks for them."},
+   {k:["approve","approval","approved","accepted","hear back","decision","confirm","confirmation"],
+    a:"Applying is not approval. Our Vendor Chair reviews every application. Once you're approved, we email your booth assignment, the vendor credential link for your staff, and parking details.\n\nIf we can't approve your application, we refund your payment in full."},
+   {k:["cancel","refund booth","booth fee back","rain","weather","can't make it","cant make it","withdraw"],
+    a:"Every event is rain or shine. Booth fees are not refundable once your booth is approved, and Kiwanis isn't responsible for unused product or lost sales. If we can't approve your application, you get a full refund. For anything else, email " + EMAIL + "."},
+   {k:["placement","spot","booth location","where will i be","where will my booth","my booth be","which spot","assigned","map","booth number","space"],
+    a:"No particular space is guaranteed. The Fire Marshal's direction always overrides the planned map, because safety and security come first. Your booth assignment comes in your approval email and in the \"Must Read\" email before the event."},
+   {k:["setup","set up","load in","load-in","load out","move out","teardown","tear down","arrive","what time"],
+    a:"Setup times are in the \"Must Read\" email we send all vendors before each event. In general:\n\n• Zozobra: load-in is the Wednesday and Thursday of event week. Only food and perishables come in Friday. Booths are set by 8 AM Friday and out by noon Saturday.\n• Fourth of July: booths are set by 1 PM, when inspections begin.\n\nNo vehicle moves after the event until law enforcement clears it."},
+   {k:["parking","park","credential","wristband","staff pass","passes","bracelet"],
+    a:"Once you're approved, we send a vendor credential link for each person staffing your booth, plus your vendor parking details. Vendors have their own lot with a limited number of passes."},
+   {k:["generator","propane","lp","open flame","grill","charcoal","fire","inspection","extinguisher"],
+    a:"If you run a generator or cook with propane, charcoal or open flame, the Fire Department inspects your booth and you pay the inspection fee directly to the inspector.\n\nBring a fire extinguisher (Class K if you fry), a fire blanket and a first-aid kit. Put grill mats or concrete board under cooking equipment and generators. No grilling in the park on the Fourth of July."},
+   {k:["tent","stake","stakes","weights","canopy","tar paper"],
+    a:"No ground stakes in any City park or on the Plaza. Tents must be weighted. Put tar paper under your booth and grill mats or concrete board under cooking equipment and generators."},
+   {k:["nonprofit","non-profit","agency","information table","info table","informational","giveaway","handout","flyer","flyers"],
+    a:"Nonprofits and agencies can have an information table at the Burning of Zozobra for $500 plus a $200 refundable deposit.\n\n• No T-shirt or hat giveaways\n• No paper handouts larger than a business card (City anti-litter ordinance). Use a QR code instead."},
+   {k:["dia","día","muertos","artisan","consign","consignment","merchandise booth"],
+    a:"For Día de los Muertos on the Plaza (Oct. 30–31), City ordinance allows one merchandise booth, and that's the Kiwanis booth. Artisans can sell work to us outright or consign it with us. Email merchandise@burnzozobra.com."},
+   {k:["sponsor","sponsorship","activation","brand","advertise"],
+    a:"Want an activation space rather than a vending booth? Start with a sponsorship: burnzozobra.com/sponsors."},
+   {k:["outside","cerrillos","street","sidewalk","outside the venue","outside the park"],
+    a:"Please sell only inside the event. Approved vendors who set up outside the venue to sell to attendees can be barred from future events, and the City can fine us when it happens."},
+   {k:["indemnity","indemnification","agreement","sign","signature","contract","workers comp","workers' comp","workers compensation"],
+    a:"You e-sign everything in the application: the vendor policies, the cleanup deposit terms, the workers' compensation notice and the Vendor Indemnification Agreement. There's nothing to sign separately later.\n\nVendors are responsible for their own obligations under the New Mexico Workers' Compensation Act. Information for employers: workerscomp.nm.gov/faqs or (505) 841-6851."},
+   {k:["card","credit","debit","check","cash","payment method","how do i pay"],
+    a:"You pay by credit or debit card when you submit the application. Payments are processed securely by Stripe for the Kiwanis Club of Santa Fe."},
+   {k:["contact","email","phone","talk to","question","help","person","human"],
+    a:"Email the vendor team at " + EMAIL + ". Please include your business name and the event you're asking about."},
+   {k:["hi","hello","hola","hey"],
+    a:"Hi! Ask me anything about vending at New Year's Eve, the Fourth of July or the Burning of Zozobra."},
+   {k:["thank","thanks"],
+    a:"You're welcome! We hope to see your booth at the event. ¡Viva el Viejo!"}
+  ]
+};
+
+var ES = {
+  hdr:"Pregunta a Vendedores", lang:"English", ph:"Pregunta sobre vender en nuestros eventos…", send:"Enviar",
+  foot:'Programa de Vendedores del Kiwanis Club of Santa Fe · <b>v1</b> · <a href="mailto:vendors@burnzozobra.com">vendors@burnzozobra.com</a>',
+  hello:"¡Hola! Respondo preguntas sobre ser vendedor en la Víspera de Año Nuevo en la Plaza de Santa Fe, el Cuatro de Julio y la Quema de Zozobra. Pregúntame sobre tarifas, el depósito, fechas límite, seguro, permisos de comida o cómo solicitar.\n\nYou can switch to English with the button above.",
+  chips:["¿Cómo solicito?","Tarifas","Depósito","Fechas límite","Seguro","Permisos de comida","Recuperar mi depósito","Mesas para organizaciones"],
+  fallback:"No estoy seguro de eso. Pregúntame sobre tarifas, el depósito, fechas límite, seguro, permisos de comida, número CRS, horarios de montaje, ubicación o cómo solicitar. Para cualquier otra cosa, escribe a " + EMAIL + " con el nombre de tu negocio y el evento.",
+  kb:[
+   {k:["solicitar","solicito","solicitud","aplicar","inscrib","registr","como","ser vendedor","puesto","formulario"],
+    a:"Solicita, firma y paga en línea en " + APPLY + ".\n\nElige tu evento, sube tus documentos, firma electrónicamente las políticas para vendedores, los términos del depósito de limpieza y el Acuerdo de Indemnización, y paga con tarjeta. Toma unos 15 minutos. Ten listo tu certificado de seguro y tu número CRS antes de empezar.\n\nUna solicitud por evento. El formulario está en inglés; si necesitas ayuda, escribe a " + EMAIL + "."},
+   {k:["tarifa","tarifas","costo","precio","cuanto","cuánto","pagar","cobr"],
+    a:"Tarifas por puesto, más un depósito reembolsable de limpieza del 40% de la tarifa:\n\n• Víspera de Año Nuevo en la Plaza: $500 + $200 de depósito\n• Cuatro de Julio: $700 + $280 de depósito por puesto\n• Quema de Zozobra: $1,450 + $580 de depósito por puesto\n• Zozobra, dos o más puestos: $1,400 + $560 de depósito por puesto\n• Mesa informativa para organizaciones sin fines de lucro en Zozobra: $500 + $200 de depósito\n\nEl formulario hace la suma y muestra la tarifa y el depósito por separado antes de pagar."},
+   {k:["varios puestos","dos puestos","mas de un puesto","más de un puesto"],
+    a:"En la Quema de Zozobra, los vendedores con dos o más puestos pagan $1,400 por puesto más $560 de depósito por puesto. Escribe el número de puestos en la solicitud y el formulario lo calcula."},
+   {k:["deposito","depósito","40%","reembolsable"],
+    a:"Cada vendedor paga un depósito reembolsable de limpieza igual al 40% de la tarifa del puesto, que se cobra junto con la tarifa al solicitar.\n\nSe reembolsa a la tarjeta con la que pagaste, de 4 a 6 semanas después de que la Ciudad revise los espacios, si dejas tu espacio limpio. Pregúntame \"¿cómo recupero mi depósito?\" para ver la lista completa."},
+   {k:["recupero mi deposito","recuperar mi deposito","recuper","devolver","devolucion","devolución","reembolso","limpieza","limpio","basura","grasa","desperdicio"],
+    a:"Para recuperar todo tu depósito, deja tu espacio tal como lo encontraste:\n\n• Sin restos de comida ni perecederos, incluido hielo y condimentos\n• Sin papel ni empaques\n• Sin cajas, cartón, huacales ni tarimas\n• Sin grasa, aceite, aguas grises ni hielo derretido en el suelo o en las coladeras. La grasa va solo en los barriles que proporcionamos\n• Sin manchas ni derrames\n• Sin basura: cinchos, cinta, colillas, papel de techar, tapetes\n• Todo tu equipo fuera antes de la hora límite\n\nKiwanis puede quedarse con parte o todo el depósito para cubrir la limpieza. Si la Ciudad o Parques nos cobra por limpiar tu espacio o desechar tu basura, o pone una multa, tú pagas esos cargos, aunque superen tu depósito.\n\nLos reembolsos van a tu tarjeta en 4 a 6 semanas. Si pasó demasiado tiempo para reembolsar a la tarjeta, lo enviamos por Venmo, PayPal (con comisión), Cash App, Apple Pay o Zelle, según lo que elegiste en el formulario."},
+   {k:["venmo","paypal","zelle","cash app","apple pay"],
+    a:"Los depósitos se reembolsan a la tarjeta con la que pagaste. Solo si pasó demasiado tiempo usamos la opción que elegiste en el formulario: Venmo, PayPal (con comisión), Cash App, Apple Pay o Zelle."},
+   {k:["fecha limite","fecha límite","fechas limite","fechas límite","plazo","ultimo dia","último día","tarde"],
+    a:"Fechas límite para reservar puesto:\n\n• Cuatro de Julio: 6 de junio de 2027\n• Quema de Zozobra: 6 de julio de 2027\n• Víspera de Año Nuevo en la Plaza: solicita pronto, el espacio en la Plaza es limitado.\n\nDespués de la fecha límite no podemos agregar vendedores, porque la lista va a la Ciudad y al Estado."},
+   {k:["cuando","cuándo","fecha","fechas","donde","dónde","eventos","oportunidad"],
+    a:"Oportunidades para vendedores:\n\n• Víspera de Año Nuevo en la Plaza de Santa Fe: jueves 31 de diciembre de 2026\n• Cuatro de Julio: domingo 4 de julio de 2027, Franklin E. Miles Park\n• 103.ª Quema de Zozobra: viernes 3 de septiembre de 2027, Fort Marcy Park\n\nLos artesanos del Día de los Muertos (30 y 31 de octubre, Plaza de Santa Fe) venden a través del puesto de mercancía de Kiwanis. Detalles en " + APPLY + "."},
+   {k:["seguro","coi","certificado de seguro","responsabilidad","asegurado"],
+    a:"Todo vendedor necesita un certificado de seguro de responsabilidad civil general, incluidas las mesas informativas.\n\n• Titular del certificado y asegurado adicional: Kiwanis Club of Santa Fe, PO Box 622, Santa Fe, NM 87504\n• Nombra también a la Ciudad de Santa Fe (City of Santa Fe) como asegurado adicional\n\nLo subes con tu solicitud; pídelo a tu agente con unos días de anticipación."},
+   {k:["crs","grt","impuesto","ingresos brutos","numero de impuesto","número de impuesto"],
+    a:"Todo vendedor que venda algo necesita un número CRS de Nuevo México (impuesto sobre ingresos brutos). Las mesas solo informativas que no venden nada pueden escribir \"info only\"."},
+   {k:["permiso","nmed","tfe","comida temporal","salud","catering","movil","móvil"],
+    a:"Los vendedores de comida y bebida necesitan uno de estos del Departamento del Medio Ambiente de Nuevo México (NMED):\n\n• Un permiso de Catering o Móvil, o\n• Una solicitud de Establecimiento Temporal de Comida (TFE) presentada ante NMED\n\nLa Ciudad solo acepta permisos de Catering o Móvil; los demás presentan una TFE. Sube tu permiso con la solicitud o envíalo a " + EMAIL + " antes de la fecha que te indiquemos."},
+   {k:["manipulador","manejo de alimentos","certificado de alimentos"],
+    a:"Los vendedores de comida y bebida suben los certificados de manejo de alimentos de su personal con la solicitud, o los envían a " + EMAIL + " antes de que se confirme su puesto."},
+   {k:["alcohol","cerveza","vino","licor"],
+    a:"Quien venda cerveza, vino o licor debe presentar una licencia de licores y prueba de seguridad para la venta de alcohol. La Ciudad exige ambas."},
+   {k:["aprob","aceptad","respuesta","decision","decisión","confirm"],
+    a:"Solicitar no es aprobación. Nuestro encargado de vendedores revisa cada solicitud. Al aprobarte, te enviamos por correo tu puesto asignado, el enlace de credenciales para tu personal y los detalles de estacionamiento.\n\nSi no podemos aprobar tu solicitud, te reembolsamos el pago completo."},
+   {k:["cancelar","lluvia","clima","no puedo ir","retirar"],
+    a:"Todos los eventos son con lluvia o sol. La tarifa del puesto no es reembolsable una vez aprobado, y Kiwanis no se hace responsable por producto no vendido ni ventas perdidas. Si no aprobamos tu solicitud, el reembolso es completo."},
+   {k:["ubicacion","ubicación","lugar","asignado","mi puesto","donde estara","dónde estará","mapa","numero de puesto","número de puesto","espacio"],
+    a:"No se garantiza un espacio en particular. Las indicaciones del Jefe de Bomberos siempre tienen prioridad, porque la seguridad es lo primero. Tu puesto asignado llega en tu correo de aprobación y en el correo \"Must Read\" antes del evento."},
+   {k:["montaje","montar","instalar","llegar","desmontar","hora","horario"],
+    a:"Los horarios de montaje están en el correo \"Must Read\" que enviamos antes de cada evento. En general:\n\n• Zozobra: el montaje es el miércoles y jueves de la semana del evento. El viernes solo entran comida y perecederos. Puestos listos a las 8 a.m. del viernes y fuera al mediodía del sábado.\n• Cuatro de Julio: puestos listos a la 1 p.m., cuando empiezan las inspecciones."},
+   {k:["estacionamiento","estacionar","credencial","pulsera","pase","pases"],
+    a:"Al aprobarte, te enviamos un enlace de credenciales para cada persona en tu puesto y los detalles del estacionamiento para vendedores, con un número limitado de pases."},
+   {k:["generador","propano","gas","fuego","parrilla","carbon","carbón","inspeccion","inspección","extintor"],
+    a:"Si usas generador o cocinas con propano, carbón o fuego abierto, el Departamento de Bomberos inspecciona tu puesto y pagas la inspección directamente al inspector.\n\nTrae extintor (Clase K si fríes), manta contra incendios y botiquín. No se permite asar en el parque el Cuatro de Julio."},
+   {k:["carpa","toldo","estacas","pesas"],
+    a:"No se permiten estacas en ningún parque de la Ciudad ni en la Plaza. Las carpas deben tener pesas. Pon papel de techar bajo tu puesto y tapetes o placas de concreto bajo el equipo de cocina y generadores."},
+   {k:["sin fines de lucro","organizacion","organización","agencia","mesa informativa","volantes","regalos"],
+    a:"Las organizaciones sin fines de lucro y agencias pueden tener una mesa informativa en la Quema de Zozobra por $500 más $200 de depósito reembolsable.\n\n• No se regalan camisetas ni gorras\n• No se reparten papeles más grandes que una tarjeta de presentación (ordenanza contra la basura). Usa un código QR."},
+   {k:["dia de los muertos","día de los muertos","artesano","consigna","mercancia","mercancía"],
+    a:"Para el Día de los Muertos en la Plaza (30 y 31 de octubre), la ordenanza de la Ciudad permite un solo puesto de mercancía, el de Kiwanis. Los artesanos pueden vendernos su obra o dejarla a consignación. Escribe a merchandise@burnzozobra.com."},
+   {k:["patrocin","marca","publicidad"],
+    a:"¿Quieres un espacio de activación en lugar de un puesto? Empieza con un patrocinio: burnzozobra.com/sponsors."},
+   {k:["afuera","fuera del evento","calle","banqueta","cerrillos"],
+    a:"Vende solo dentro del evento. Los vendedores que se instalan fuera para venderle al público pueden quedar excluidos de eventos futuros, y la Ciudad puede multarnos."},
+   {k:["indemniz","acuerdo","firma","firmar","contrato","compensacion","compensación"],
+    a:"Firmas todo electrónicamente en la solicitud: las políticas, los términos del depósito, el aviso de compensación laboral y el Acuerdo de Indemnización. No hay nada más que firmar después.\n\nCada vendedor es responsable de sus obligaciones bajo la Ley de Compensación Laboral de Nuevo México: workerscomp.nm.gov/faqs o (505) 841-6851."},
+   {k:["tarjeta","credito","crédito","debito","débito","efectivo","cheque","como pago","cómo pago"],
+    a:"Pagas con tarjeta de crédito o débito al enviar la solicitud. Stripe procesa los pagos de forma segura para el Kiwanis Club of Santa Fe."},
+   {k:["contacto","correo","telefono","teléfono","ayuda","persona","pregunta"],
+    a:"Escribe al equipo de vendedores a " + EMAIL + ". Incluye el nombre de tu negocio y el evento."},
+   {k:["hola","buenas","buenos dias","buenos días"],
+    a:"¡Hola! Pregúntame lo que quieras sobre vender en Año Nuevo, el Cuatro de Julio o la Quema de Zozobra."},
+   {k:["gracias"],
+    a:"¡De nada! Esperamos ver tu puesto en el evento. ¡Viva el Viejo!"}
+  ]
+};
+
+var L = (location.search.indexOf('lang=es') > -1) ? ES : EN;
+var chat = document.getElementById('chat');
+
+function norm(s){return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');}
+
+function answer(text){
+  var q = ' ' + norm(text) + ' ', best = null, score = 0;
+  for (var i=0;i<L.kb.length;i++){
+    var s = 0;
+    for (var j=0;j<L.kb[i].k.length;j++){
+      var key = norm(L.kb[i].k[j]);
+      var hit = key.length <= 3 ? new RegExp('[^a-z]' + key.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '[^a-z]').test(q) : q.indexOf(key) > -1;
+      if (hit) s += key.length;
+    }
+    if (s > score){ score = s; best = L.kb[i]; }
+  }
+  return best ? best.a : L.fallback;
+}
+
+function add(text, who){
+  var d = document.createElement('div');
+  d.className = 'msg ' + who;
+  d.textContent = text;
+  chat.appendChild(d);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function chips(){
+  var box = document.getElementById('chips');
+  box.innerHTML = '';
+  L.chips.forEach(function(c){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = c;
+    b.onclick = function(){ ask(c); };
+    box.appendChild(b);
+  });
+}
+
+function ask(text){
+  add(text,'me');
+  setTimeout(function(){ add(answer(text),'bot'); }, 280);
+}
+
+function paint(){
+  document.getElementById('hdr').textContent = L.hdr;
+  document.getElementById('lang').textContent = L.lang;
+  document.getElementById('q').placeholder = L.ph;
+  document.getElementById('send').textContent = L.send;
+  document.getElementById('foot').innerHTML = L.foot;
+  document.documentElement.lang = (L === ES) ? 'es' : 'en';
+  chat.innerHTML = '';
+  add(L.hello,'bot');
+  chips();
+}
+
+document.getElementById('lang').onclick = function(){
+  L = (L === EN) ? ES : EN;
+  paint();
+};
+
+document.getElementById('f').onsubmit = function(e){
+  e.preventDefault();
+  var v = document.getElementById('q').value.trim();
+  if (!v) return;
+  document.getElementById('q').value = '';
+  ask(v);
+};
+
+paint();
+</script>
+</body>
+</html>
