@@ -9,9 +9,11 @@
 :root{--paper:#FBF6EC;--ink:#1E1A16;--red:#E8192B;--deep:#9E1420;--brown:#4A2412;--line:#E2D6C2;--orange:#E87722;--sand:#F3E7D0;}
 *{box-sizing:border-box;}
 html,body{height:100%;margin:0;}
-body{font-family:'Bitter',Georgia,serif;color:var(--ink);background:var(--paper);display:flex;flex-direction:column;}
-#bg{position:fixed;inset:0;background:url('https://burnzozobra.com/wp-content/uploads/2026/09/Zozo-103-scaled.png') center 45% / 60% no-repeat;opacity:.06;pointer-events:none;}
+body{font-family:'Bitter',Georgia,serif;color:var(--ink);background:#FFFFFF;display:flex;flex-direction:column;}
+#bg{position:fixed;inset:0;background:#FFFFFF url('https://burnhim.github.io/zozobra-bots/img/vendor-bg.jpg') center 58% / min(78vw,420px) no-repeat;opacity:.32;pointer-events:none;}
 #bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px 0;position:relative;z-index:2;flex:0 0 auto;}
+#bar .t{display:flex;align-items:center;gap:8px;}
+#bar .t img{width:38px;height:38px;object-fit:contain;}
 #bar h1{font-family:'Rye',Georgia,serif;font-weight:400;font-size:20px;margin:0;color:var(--brown);}
 #bar .r{display:flex;align-items:center;gap:10px;}
 #bar button{background:var(--red);color:#fff;-webkit-text-fill-color:#fff;border:0;border-radius:16px;padding:7px 16px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;}
@@ -35,8 +37,8 @@ footer a{color:#FFD7A8;-webkit-text-fill-color:#FFD7A8;}
 <body>
 <div id="bg"></div>
 <div id="bar">
-<h1 id="hdr">Ask the Vendor Desk</h1>
-<span class="r"><span id="ver">v1</span><button id="lang" type="button">Español</button></span>
+<span class="t"><img src="https://burnhim.github.io/zozobra-bots/img/vendor-logo.png" alt=""><h1 id="hdr">Ask the Vendor Desk</h1></span>
+<span class="r"><span id="ver">v2</span><button id="lang" type="button">Español</button></span>
 </div>
 <div id="chat"></div>
 <div id="chips"></div>
@@ -52,7 +54,7 @@ var EMAIL = "vendors@burnzozobra.com";
 
 var EN = {
   hdr:"Ask the Vendor Desk", lang:"Español", ph:"Ask about vending at our events…", send:"Send",
-  foot:'Kiwanis Club of Santa Fe Vendor Program · <b>v1</b> · <a href="mailto:vendors@burnzozobra.com">vendors@burnzozobra.com</a>',
+  foot:'Kiwanis Club of Santa Fe Vendor Program · <b>v2</b> · <a href="mailto:vendors@burnzozobra.com">vendors@burnzozobra.com</a>',
   hello:"Hi! I answer questions about being a vendor at New Year's Eve on the Santa Fe Plaza, the Fourth of July, and the Burning of Zozobra. Ask me about fees, the deposit, deadlines, insurance, food permits, or how to apply.\n\nPuedes preguntarme en español también: toca el botón de arriba.",
   chips:["How do I apply?","Fees","Deposit","Deadlines","Insurance","Food permits","Getting my deposit back","Nonprofit tables"],
   fallback:"I'm not sure about that one. Try asking about fees, the deposit, deadlines, insurance, food permits, CRS numbers, setup times, placement, or how to apply. For anything else, email " + EMAIL + " with your business name and the event.",
@@ -120,7 +122,7 @@ var EN = {
 
 var ES = {
   hdr:"Pregunta a Vendedores", lang:"English", ph:"Pregunta sobre vender en nuestros eventos…", send:"Enviar",
-  foot:'Programa de Vendedores del Kiwanis Club of Santa Fe · <b>v1</b> · <a href="mailto:vendors@burnzozobra.com">vendors@burnzozobra.com</a>',
+  foot:'Programa de Vendedores del Kiwanis Club of Santa Fe · <b>v2</b> · <a href="mailto:vendors@burnzozobra.com">vendors@burnzozobra.com</a>',
   hello:"¡Hola! Respondo preguntas sobre ser vendedor en la Víspera de Año Nuevo en la Plaza de Santa Fe, el Cuatro de Julio y la Quema de Zozobra. Pregúntame sobre tarifas, el depósito, fechas límite, seguro, permisos de comida o cómo solicitar.\n\nYou can switch to English with the button above.",
   chips:["¿Cómo solicito?","Tarifas","Depósito","Fechas límite","Seguro","Permisos de comida","Recuperar mi depósito","Mesas para organizaciones"],
   fallback:"No estoy seguro de eso. Pregúntame sobre tarifas, el depósito, fechas límite, seguro, permisos de comida, número CRS, horarios de montaje, ubicación o cómo solicitar. Para cualquier otra cosa, escribe a " + EMAIL + " con el nombre de tu negocio y el evento.",
