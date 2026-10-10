@@ -48,15 +48,22 @@ h1{font-family:var(--display);font-weight:800;font-size:clamp(1.5rem,3.4vw,2.1re
 .tabs button[aria-selected="true"]::after{content:"✓ Showing";margin-left:auto;font:700 .75rem/1 var(--body);color:#fff;background:var(--accent);padding:5px 7px;border-radius:6px;white-space:nowrap}
 @media (max-width:1000px){.tabs button[aria-selected="true"]::after{content:"✓"}}
 /* inside the application form: compact, fixed heights so the frame can size itself */
-body.inform .wrap{padding:8px 0 10px}
+/* framed (inside a WordPress page): fixed heights so the frame can size itself */
+body.framed .wrap{padding:8px 0 10px}
+body.framed #map{height:520px;min-height:0}
+body.framed .side{max-height:520px}
+@media (max-width:900px){body.framed #map{height:420px} body.framed .side{max-height:380px}}
+/* inside the application: the event comes only from step 1 and cannot be changed here */
 body.inform header.top .sub{display:none}
 body.inform .evlogo{width:64px;height:64px}
-body.inform #map{height:520px;min-height:0}
-body.inform .side{max-height:520px}
-@media (max-width:900px){body.inform #map{height:420px} body.inform .side{max-height:380px}}
-body.inform.formled .tabs, body.inform.formled .picklabel{display:none}
-.formhint{display:none;background:#fff4d6;border:2px solid #f0b429;border-radius:10px;padding:12px 14px;margin:0 0 12px;font-weight:700;color:#1e1a17}
+body.inform .tabs, body.inform .picklabel{display:none!important}
+body.inform:not(.formled) .facts, body.inform:not(.formled) .banner, body.inform:not(.formled) .pickbar,
+body.inform:not(.formled) .work, body.inform:not(.formled) .foot, body.inform:not(.formled) header.top{display:none!important}
+.formhint{display:none;background:#fff4d6;border:2px solid #f0b429;border-radius:10px;padding:14px 16px;margin:0 0 12px;font-weight:700;color:#1e1a17}
 body.inform:not(.formled) .formhint{display:block}
+/* preview: look only */
+.previewnote{display:none;background:#e7f1ff;border:2px solid #1c7ed6;border-radius:10px;padding:10px 14px;margin:0 0 12px;font-weight:700;color:#1e1a17}
+body.preview .previewnote{display:block}
 button:focus-visible,input:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
 .tabs svg{width:18px;height:18px;flex:none}
 
@@ -136,7 +143,8 @@ body.editing .edit{display:flex}
     </div>
   </header>
 
-  <p class="formhint" id="formHint">Choose your event in step 1 of the application, and this map switches to it. Until then, you can look at any event's map below.</p>
+  <p class="formhint" id="formHint">Choose your event in step 1 of the application, and its map will appear here so you can request your space.</p>
+  <p class="previewnote" id="previewNote">Preview only. Look around each event's map and spaces here; you'll request your space inside the vendor application.</p>
   <p class="picklabel" id="pickLabel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg><span id="pickLabelText">Choose an event to see its vendor map</span></p>
   <div class="tabs" role="tablist" aria-label="Event">
     <button role="tab" data-ev="dia" aria-selected="true"><img src="img/vendor-map-logo-dia.jpg" alt=""><span><span class="tn">Día de los Muertos</span><small class="ts">Santa Fe Plaza</small></span></button>
@@ -427,13 +435,15 @@ window.addEventListener("message", e=>{
 });
 let lastH=0;
 function postHeight(){
-  if(!PICK || window.parent===window) return;
+  if(window.parent===window) return;
   const h=Math.ceil(document.querySelector(".wrap").getBoundingClientRect().height);
   if(!h) return;
   if(h!==lastH){ lastH=h; window.parent.postMessage({source:"kiwanis-vendor-map", height:h}, "*"); }
 }
-if(PICK){
-  document.body.classList.add("inform");
+if(PICK) document.body.classList.add("inform");
+else if(!EDIT) document.body.classList.add("preview");
+if(window.parent!==window){
+  document.body.classList.add("framed");
   if(window.ResizeObserver){ new ResizeObserver(()=>postHeight()).observe(document.body); new ResizeObserver(()=>{ const el=document.getElementById("map"); if(!(el.clientWidth&&el.clientHeight)) return; map.invalidateSize(); if(pendingFit) render(current,false); }).observe(document.getElementById("map")); }
   window.addEventListener("load", postHeight);
 }
@@ -605,13 +615,14 @@ document.getElementById("copyBtn").addEventListener("click",()=>{
     ()=>{ta.focus(); ta.select();});
 });
 document.getElementById("q").addEventListener("input",ev=>list(ev.target.value));
-document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>{ history.replaceState(null,"","#"+b.dataset.ev); if(b.dataset.ev!==current){ choice.first=""; choice.alternate=""; } render(b.dataset.ev); if(PICK) sendChoice(); }));
-window.addEventListener("hashchange",()=>{ const h=location.hash.slice(1); if(EVENTS[h] && h!==current) render(h); });
+document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>{ if(PICK) return; history.replaceState(null,"","#"+b.dataset.ev); if(b.dataset.ev!==current){ choice.first=""; choice.alternate=""; } render(b.dataset.ev); if(PICK) sendChoice(); }));
+window.addEventListener("hashchange",()=>{ if(PICK) return; const h=location.hash.slice(1); if(EVENTS[h] && h!==current) render(h); });
 
 const start = location.hash.slice(1);
 if(ES){
   document.getElementById("pickLabelText").textContent = "Elige un evento para ver su mapa de vendedores";
-  document.getElementById("formHint").textContent = "Elige tu evento en el paso 1 de la solicitud y este mapa cambiará a ese evento. Mientras tanto, puedes ver el mapa de cualquier evento abajo.";
+  document.getElementById("formHint").textContent = "Elige tu evento en el paso 1 de la solicitud y su mapa aparecerá aquí para que solicites tu espacio.";
+  document.getElementById("previewNote").textContent = "Solo vista previa. Explora el mapa y los espacios de cada evento aquí; solicitarás tu espacio dentro de la solicitud de vendedor.";
   document.querySelector("h1").textContent = "Mapas de espacios para vendedores";
   const nm={dia:"Día de los Muertos",nye:"Año Nuevo",july4:"4 de julio",zozobra:"Zozobra"};
   const sb={dia:"Plaza de Santa Fe",nye:"Plaza de Santa Fe",july4:"Parque Franklin E. Miles",zozobra:"Parque Fort Marcy"};
