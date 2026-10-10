@@ -267,7 +267,7 @@ const EVENTS = {
     center:[35.68755,-105.93860], zoom:20,
     facts:[["cal","Thursday, December 31, 2026"]],
     banner:AVAIL+" Available: three food truck spaces, two information booths for nonprofits and agencies, and six plaza booth spaces. <strong>Plaza booth spaces P1–P6 are only for vendors who already hold a City of Santa Fe Plaza vendor permit.</strong> The gray spaces on Palace Avenue are City-permitted vendors and are not available through Kiwanis.",
-    spaces: [...PLAZA_SPACES, sp("S2","stage","Plaza, southeast corner",[35.687222,-105.938362],"New Year's Eve stage 2",55)],
+    spaces: [...PLAZA_SPACES, sp("S2","stage","E San Francisco St & Old Santa Fe Trail",[35.687103,-105.938194],"NYE Stage",55)],
     landmarks: [{t:"Bandstand", ll:[35.68761,-105.93845]}]
   },
   july4:{
@@ -544,7 +544,8 @@ function render(ev, keepView){
     if(picked) pop += `<p>Your ${picked.toLowerCase()}</p>`;
     if(PICK && ASSIGNABLE.has(s.k) && !taken) pop += `<div class="choose"><button type="button" data-choose="first" data-id="${esc(s.id)}">${T.first}</button><button type="button" data-choose="alternate" data-id="${esc(s.id)}">${T.alt}</button></div><p class="fine">${T.note}</p>`;
     fp.bindPopup(pop);
-    const m = L.marker(llOf(ev,s),{icon:L.divIcon({className:"pin"+(picked?" picked":""),html:`<b style="${taken?"background:#5c636a;color:#fff;border-color:#dee2e6":chipStyle(s.k)}">${esc(s.id)}</b>`,iconSize:[0,0]}),
+    const pinHtml = s.k==="stage" ? `<b>${esc(s.n)}</b>` : `<b style="${taken?"background:#5c636a;color:#fff;border-color:#dee2e6":chipStyle(s.k)}">${esc(s.id)}</b>`;
+    const m = L.marker(llOf(ev,s),{icon:L.divIcon({className:"pin"+(s.k==="stage"?" landmark":"")+(picked?" picked":""),html:pinHtml,iconSize:[0,0]}),
       draggable:EDIT, title:s.n, riseOnHover:true}).bindPopup(pop).addTo(layer);
     if(EDIT){
       m.on("drag",()=>fp.setLatLngs(footprint([m.getLatLng().lat,m.getLatLng().lng], k.size, s.rot)));
