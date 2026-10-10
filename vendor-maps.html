@@ -297,9 +297,12 @@ const roads = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/
 const streets = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",
   {maxZoom:21, maxNativeZoom:19, attribution:"© OpenStreetMap contributors"});
 const satGroup = L.layerGroup([sat, roads]);
-const map = L.map("map",{layers:[satGroup]});
-L.control.layers({"Satellite":satGroup,"Streets":streets},null,{position:"topright"}).addTo(map);
+/* Offline copies carry their own imagery in window.BAKED; the live page loads map tiles. */
+const BAKED = window.BAKED || null;
+const map = L.map("map", BAKED ? {maxZoom:21} : {layers:[satGroup]});
+if(!BAKED) L.control.layers({"Satellite":satGroup,"Streets":streets},null,{position:"topright"}).addTo(map);
 map.attributionControl.setPrefix(false);
+const base = L.layerGroup().addTo(map);
 
 const EDIT = /[?&]edit\b/.test(location.search);
 if(EDIT) document.body.classList.add("editing");
@@ -333,6 +336,11 @@ function render(ev){
   document.getElementById("q").value = "";
 
   layer.clearLayers(); markers = {};
+  if(BAKED && BAKED[ev]){
+    base.clearLayers();
+    L.imageOverlay(BAKED[ev].img, BAKED[ev].b, {attribution:"Imagery © Esri, Maxar, Earthstar Geographics"}).addTo(base);
+    map.setMaxBounds(L.latLngBounds(BAKED[ev].b).pad(0.05)); map.setMinZoom(16);
+  }
   (e.areas||[]).forEach(z=>{
     L.polygon(z.poly,{color:z.color,weight:z.dash?3:2,dashArray:z.dash?"8 6":null,fillColor:z.color,fillOpacity:z.dash?.10:.18,interactive:false}).addTo(layer);
     if(z.label) L.marker(z.label,{interactive:false,icon:L.divIcon({className:"pin landmark",html:`<b style="border-color:${z.color};color:#fff;background:${z.dash?"#c92a2a":"#1e1a17"}">${esc(z.t)}</b>`,iconSize:[0,0]})}).addTo(layer);
