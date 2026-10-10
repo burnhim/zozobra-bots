@@ -90,6 +90,14 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--focus);outline-
 .leaflet-popup-content h3{margin:4px 0 2px;font-size:16px;line-height:1.25;color:#1e1a17}
 .leaflet-popup-content p{margin:2px 0;color:#3d3631}
 
+.pickbar{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;background:var(--panel);border:1.5px solid var(--accent);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:.92rem}
+.pickbar button{font:600 .85rem var(--body);padding:6px 12px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.fine{color:var(--muted);font-size:.84rem;width:100%}
+.leaflet-popup-content .fine{color:#5d554d;font-size:12px;width:auto}
+.choose{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.choose button{font:600 13px "Bitter",Georgia,serif;padding:7px 10px;border-radius:7px;border:1.5px solid #1e1a17;background:#1e1a17;color:#fff;cursor:pointer}
+.choose button + button{background:#fff;color:#1e1a17}
+.pin.picked b{outline:3px solid #ffd43b;outline-offset:2px}
 .edit{display:none;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px;border-top:1px dashed var(--line)}
 body.editing .edit{display:flex}
 .edit button{font:600 .85rem var(--body);padding:8px 12px;border-radius:8px;border:1.5px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer}
@@ -124,6 +132,13 @@ body.editing .edit{display:flex}
     <div id="bannerText"></div>
   </div>
 
+  <div class="pickbar" id="pickbar" hidden>
+    <span><strong>Your first choice:</strong> <span id="pickFirst">not chosen</span></span>
+    <span><strong>Alternate:</strong> <span id="pickAlt">not chosen</span></span>
+    <button type="button" id="pickClear">Clear</button>
+    <span class="fine">Tap an open space to choose it. Requests are not guaranteed; Kiwanis assigns every space, and the Fire Marshal's direction comes first.</span>
+  </div>
+
   <div class="work">
     <div class="mapbox"><div id="map" role="region" aria-label="Vendor map"></div></div>
     <aside class="side" aria-label="Vendor spaces">
@@ -141,6 +156,7 @@ body.editing .edit{display:flex}
         <strong>Layout tools</strong>
         <span style="color:var(--muted);font-size:.85rem">Drag any pin, then copy the layout and send it back.</span>
         <button type="button" id="copyBtn">Copy layout</button>
+        <span id="spacing" style="font-size:.85rem;width:100%"></span>
         <textarea id="layoutOut" readonly aria-label="Layout data"></textarea>
       </div>
     </aside>
@@ -201,7 +217,7 @@ const FM = [
   ["28","Magers Field",[35.694041,-105.935111]],["29","Magers Field",[35.694124,-105.935111]],["30","Magers Field",[35.694211,-105.935093]],
   ["31","Magers Field",[35.694279,-105.935141]],["35","Magers Field",[35.694959,-105.935506]],["36","Magers Field",[35.694901,-105.935051]],
   ["37","Magers Field",[35.694677,-105.934214]],["38","Magers Field",[35.693881,-105.934333]]
-].map(r=>{ const t=["1","2","3","4","5","6","7","10","11","12"].includes(r[0]); return sp(r[0], t?"truck":"booth", r[1], r[2], (t?"Food truck space ":"Booth space ")+r[0], t?90:0); });
+].map(r=>{ const t=["1","2","3","4","5","6","7","10","11","12","34"].includes(r[0]); /* trucks only in the tennis/pickleball lot, behind the scoreboard and in the complex lot; grass = booths */ return sp(r[0], t?"truck":"booth", r[1], r[2], (t?"Food truck space ":"Booth space ")+r[0], t?90:0); });
 
 function trucks(arr, area){ return arr.map((ll,i)=>sp(String(i+1),"truck",area,ll,"Food truck space "+(i+1))); }
 const AVAIL = "<strong>Draft layout.</strong> Spaces are assigned after approval, and the Fire Marshal's direction always takes precedence.";
@@ -233,19 +249,24 @@ const EVENTS = {
     facts:[["cal","Sunday, July 4, 2027"]],
     banner:AVAIL+" Nothing may be set up inside the firework fallout zone.",
     spaces: [
-      sp("1","truck","West food court",[35.653273, -105.984528],"Food truck space 1"),
-      sp("2","truck","West food court",[35.653193, -105.984526],"Food truck space 2"),
-      sp("3","truck","West food court",[35.653106, -105.984527],"Food truck space 3"),
-      sp("4","truck","West food court",[35.652952, -105.984517],"Food truck space 4"),
-      sp("5","truck","West food court",[35.652862, -105.984519],"Food truck space 5"),
+      sp("1","truck","West food court",[35.653275,-105.98452],"Food truck space 1"),
+      sp("2","truck","West food court",[35.653187,-105.98452],"Food truck space 2"),
+      sp("3","truck","West food court",[35.6531,-105.98452],"Food truck space 3"),
+      sp("4","truck","West food court",[35.652957,-105.98452],"Food truck space 4"),
+      sp("5","truck","West food court",[35.65287,-105.98452],"Food truck space 5"),
       sp("6","truck","West food court",[35.653246, -105.98436],"Food truck space 6"),
       sp("7","truck","West food court",[35.65314, -105.984354],"Food truck space 7"),
       sp("8","truck","West food court",[35.652996, -105.984357],"Food truck space 8"),
       sp("9","truck","West food court",[35.652884, -105.984353],"Food truck space 9"),
-      sp("I1","info","West food court",[35.65304,-105.984525],"Info tent space 1"),
-      sp("I2","info","Non-profit and info row",[35.653774, -105.98462],"Info tent space 2"),
-      sp("I3","info","Non-profit and info row",[35.653774, -105.98451],"Info tent space 3"),
-      sp("I4","info","Non-profit and info row",[35.653775, -105.9844],"Info tent space 4"),
+      sp("I1","info","West food court",[35.653028,-105.98452],"Info tent space 1"),
+      sp("I2","info","Non-profit and info row",[35.653775,-105.9846526],"Info tent space 2"),
+      sp("I3","info","Non-profit and info row",[35.653775,-105.9846189],"Info tent space 3"),
+      sp("I4","info","Non-profit and info row",[35.653775,-105.9845852],"Info tent space 4"),
+      sp("I5","info","Non-profit and info row",[35.653775,-105.9845515],"Info tent space 5"),
+      sp("I6","info","Non-profit and info row",[35.653775,-105.984474],"Info tent space 6"),
+      sp("I7","info","Non-profit and info row",[35.653775,-105.9844403],"Info tent space 7"),
+      sp("I8","info","Non-profit and info row",[35.653775,-105.9844066],"Info tent space 8"),
+      sp("I9","info","Non-profit and info row",[35.653775,-105.9843729],"Info tent space 9"),
       sp("M","merch","West food court",[35.653345,-105.984238],"Kiwanis/Zozobra Merchandise Booth"),
       sp("10","truck","Beer garden area",[35.654451,-105.981899],"Food truck space 10"),
       sp("B1","booth","Beer garden area",[35.654631, -105.982689],"Booth space B1",30),
@@ -305,6 +326,60 @@ map.attributionControl.setPrefix(false);
 const base = L.layerGroup().addTo(map);
 
 const EDIT = /[?&]edit\b/.test(location.search);
+/* Vendors page embed: ?pick lets an applicant choose a first choice and an alternate, sent to the form on the page. */
+const PICK = /[?&]pick\b/.test(location.search);
+/* Published CSV of the "Map feed" tab in the Kiwanis Vendor Applications sheet (event, space, business). */
+const FEED_URL = "";
+const ASSIGNABLE = new Set(["truck","booth","info"]);
+let assigned = {};               // assigned[event][SPACE] = business name
+const choice = {first:"", alternate:""};
+function who(ev, s){ return (assigned[ev]||{})[s.id.toUpperCase()] || ""; }
+function status(ev, s){ if(!ASSIGNABLE.has(s.k)) return KIND[s.k].meta; return who(ev,s) ? "Assigned to " + who(ev,s) : KIND[s.k].meta; }
+function parseCSV(t){
+  const rows=[]; let row=[], f="", q=false;
+  for(let i=0;i<t.length;i++){ const c=t[i];
+    if(q){ if(c==='"'){ if(t[i+1]==='"'){ f+='"'; i++; } else q=false; } else f+=c; }
+    else if(c==='"') q=true; else if(c===','){ row.push(f); f=""; }
+    else if(c==='\n'||c==='\r'){ if(c==='\r'&&t[i+1]==='\n') i++; row.push(f); rows.push(row); row=[]; f=""; }
+    else f+=c; }
+  if(f!==""||row.length){ row.push(f); rows.push(row); }
+  return rows;
+}
+async function loadFeed(){
+  if(!FEED_URL) return;
+  try{
+    const r = await fetch(FEED_URL, {cache:"no-store"}); if(!r.ok) return;
+    const next = {};
+    parseCSV(await r.text()).slice(1).forEach(([ev,space,biz])=>{
+      if(!ev||!space||!biz) return; ev=ev.trim().toLowerCase();
+      (next[ev]=next[ev]||{})[space.trim().toUpperCase()] = biz.trim();
+    });
+    assigned = next; render(current, true);
+  }catch(err){ /* the map still works without assignments */ }
+}
+function sendChoice(){
+  updatePickBar();
+  if(window.parent !== window) window.parent.postMessage({source:"kiwanis-vendor-map", event:current, first:choice.first, alternate:choice.alternate}, "*");
+}
+function choose(which, id){
+  if(which==="first"){ choice.first=id; if(choice.alternate===id) choice.alternate=""; }
+  else { choice.alternate=id; if(choice.first===id) choice.first=""; }
+  map.closePopup(); sendChoice(); render(current, true);
+}
+function updatePickBar(){
+  const bar=document.getElementById("pickbar"); if(!bar) return;
+  bar.hidden = !PICK;
+  document.getElementById("pickFirst").textContent = choice.first || "not chosen";
+  document.getElementById("pickAlt").textContent = choice.alternate || "not chosen";
+}
+window.addEventListener("message", e=>{
+  const d=e.data; if(!d || d.source!=="kiwanis-vendor-form") return;
+  if(EVENTS[d.event] && d.event!==current){ choice.first=""; choice.alternate=""; render(d.event); sendChoice(); }
+});
+document.addEventListener("click", e=>{
+  const b=e.target.closest("[data-choose]"); if(b) choose(b.dataset.choose, b.dataset.id);
+  if(e.target.closest("#pickClear")){ choice.first=""; choice.alternate=""; sendChoice(); render(current, true); }
+});
 if(EDIT) document.body.classList.add("editing");
 
 const layer = L.layerGroup().addTo(map);
@@ -325,7 +400,57 @@ function footprint(ll, size, bearing){
     return [ll[0] + n/mLat, ll[1] + e/mLng];
   });
 }
-function render(ev){
+
+/* Fire code checks, from the City's Special Events / Food Booth Requirements and SFFD (Jason Tapia, Oct 2023):
+   cooking spaces need 20 ft clear on at least two sides; 3 ft aisles between spaces;
+   side-by-side tents no more than 700 sq ft without a 12 ft break. */
+const COOKING = new Set(["truck","booth"]);
+const TENTS = new Set(["info","merch"]);
+const FT = 0.3048;
+function toLocal(pts, o){ const mLng=111320*Math.cos(o[0]*Math.PI/180); return pts.map(p=>[(p[1]-o[1])*mLng,(p[0]-o[0])*111320]); }
+function segDist(p,a,b){ const dx=b[0]-a[0], dy=b[1]-a[1], t=Math.max(0,Math.min(1,((p[0]-a[0])*dx+(p[1]-a[1])*dy)/(dx*dx+dy*dy))); return Math.hypot(p[0]-a[0]-t*dx, p[1]-a[1]-t*dy); }
+function overlaps(A,B){
+  for(const P of [A,B]) for(let i=0;i<P.length;i++){
+    const a=P[i], b=P[(i+1)%P.length], nx=b[1]-a[1], ny=a[0]-b[0];
+    const pa=A.map(p=>p[0]*nx+p[1]*ny), pb=B.map(p=>p[0]*nx+p[1]*ny);
+    if(Math.max(...pa) <= Math.min(...pb)+1e-6 || Math.max(...pb) <= Math.min(...pa)+1e-6) return false;
+  }
+  return true;
+}
+function gapMeters(A,B){
+  if(overlaps(A,B)) return 0;
+  let d=Infinity;
+  for(const [P,Q] of [[A,B],[B,A]]) for(const p of P) for(let i=0;i<Q.length;i++) d=Math.min(d, segDist(p,Q[i],Q[(i+1)%Q.length]));
+  return d;
+}
+function spacingIssues(ev){
+  const sp=EVENTS[ev].spaces, o=llOf(ev,sp[0]), out=[];
+  const R=sp.map(s=>toLocal(footprint(llOf(ev,s), KIND[s.k].size, s.rot), o));
+  // 20 ft clear on two sides of every cooking space
+  sp.forEach((s,i)=>{
+    if(!COOKING.has(s.k)) return;
+    const P=R[i], cx=P.reduce((a,p)=>a+p[0],0)/4, cy=P.reduce((a,p)=>a+p[1],0)/4; let clear=0;
+    for(let k=0;k<4;k++){
+      const a=P[k], b=P[(k+1)%4], mx=(a[0]+b[0])/2-cx, my=(a[1]+b[1])/2-cy, L=Math.hypot(mx,my), nx=mx/L*20*FT, ny=my/L*20*FT;
+      const zone=[a,b,[b[0]+nx,b[1]+ny],[a[0]+nx,a[1]+ny]];
+      if(!R.some((Q,j)=>j!==i && overlaps(zone,Q))) clear++;
+    }
+    if(clear<2) out.push({rule:"20 ft clear on two sides", a:s.id, detail:clear+" side"+(clear===1?"":"s")+" clear"});
+  });
+  // 3 ft aisle, and tent groups no larger than 700 sq ft without a 12 ft break
+  const parent=sp.map((_,i)=>i), find=i=>parent[i]===i?i:(parent[i]=find(parent[i]));
+  for(let i=0;i<sp.length;i++) for(let j=i+1;j<sp.length;j++){
+    const g=gapMeters(R[i],R[j])/FT, tents=TENTS.has(sp[i].k)&&TENTS.has(sp[j].k);
+    if(g<3 && !(tents && g<0.5)) out.push({rule:"3 ft aisle", a:sp[i].id, b:sp[j].id, detail:(Math.round(g*10)/10)+" ft"});
+    if(tents && g<12) parent[find(i)]=find(j);
+  }
+  const area={}; sp.forEach((s,i)=>{ if(TENTS.has(s.k)){ const r=find(i); area[r]=(area[r]||[]); area[r].push(s.id); } });
+  Object.values(area).forEach(ids=>{ const sq=ids.length*100; if(sq>700) out.push({rule:"700 sq ft tent group", a:ids.join(", "), detail:sq+" sq ft without a 12 ft break"}); });
+  return out;
+}
+window.spacingIssues = spacingIssues;
+
+function render(ev, keepView){
   current = ev;
   const e = EVENTS[ev];
   document.body.dataset.event = ev;
@@ -348,10 +473,14 @@ function render(ev){
   e.landmarks.forEach(l=>L.marker(l.ll,{interactive:false,icon:L.divIcon({className:"pin landmark",html:`<b>${esc(l.t)}</b>`,iconSize:[0,0]})}).addTo(layer));
   e.spaces.forEach(s=>{
     const k = KIND[s.k];
-    const fp = L.polygon(footprint(llOf(ev,s), k.size, s.rot), {color:k.bg==="#ffffff"?k.ring:"#ffffff", weight:2, fillColor:k.bg==="#ffffff"?k.ring:k.bg, fillOpacity:.75}).addTo(layer);
-    const pop = `<div class="pk">${esc(k.label)}</div><h3>${esc(s.n)}</h3><p>${esc(s.area)}</p><p>Size: ${esc(sizeText(s.k))}</p><p><strong>${esc(k.meta)}</strong></p>`;
+    const taken = !!who(ev,s), picked = s.id===choice.first ? "First choice" : s.id===choice.alternate ? "Alternate" : "";
+    const fp = L.polygon(footprint(llOf(ev,s), k.size, s.rot), {color: picked ? "#ffd43b" : (k.bg==="#ffffff"?k.ring:"#ffffff"), weight: picked ? 4 : 2,
+      fillColor: taken ? "#5c636a" : (k.bg==="#ffffff"?k.ring:k.bg), fillOpacity: taken ? .85 : .75}).addTo(layer);
+    let pop = `<div class="pk">${esc(k.label)}</div><h3>${esc(s.n)}</h3><p>${esc(s.area)}</p><p>Size: ${esc(sizeText(s.k))}</p><p><strong>${esc(status(ev,s))}</strong></p>`;
+    if(picked) pop += `<p>Your ${picked.toLowerCase()}</p>`;
+    if(PICK && ASSIGNABLE.has(s.k) && !taken) pop += `<div class="choose"><button type="button" data-choose="first" data-id="${esc(s.id)}">Make first choice</button><button type="button" data-choose="alternate" data-id="${esc(s.id)}">Make alternate</button></div><p class="fine">Requests are not guaranteed.</p>`;
     fp.bindPopup(pop);
-    const m = L.marker(llOf(ev,s),{icon:L.divIcon({className:"pin",html:`<b style="${chipStyle(s.k)}">${esc(s.id)}</b>`,iconSize:[0,0]}),
+    const m = L.marker(llOf(ev,s),{icon:L.divIcon({className:"pin"+(picked?" picked":""),html:`<b style="${taken?"background:#5c636a;color:#fff;border-color:#dee2e6":chipStyle(s.k)}">${esc(s.id)}</b>`,iconSize:[0,0]}),
       draggable:EDIT, title:s.n, riseOnHover:true}).bindPopup(pop).addTo(layer);
     if(EDIT){
       m.on("drag",()=>fp.setLatLngs(footprint([m.getLatLng().lat,m.getLatLng().lng], k.size, s.rot)));
@@ -360,7 +489,7 @@ function render(ev){
     markers[s.id] = m;
   });
   const pts = e.spaces.map(s=>llOf(ev,s)).concat(e.landmarks.map(l=>l.ll));
-  map.fitBounds(pts,{padding:[40,40],maxZoom:e.zoom});
+  if(!keepView) map.fitBounds(pts,{padding:[40,40],maxZoom:e.zoom});
   list(""); legend(); if(EDIT) dump();
 }
 
@@ -375,7 +504,7 @@ function list(q){
     const h=document.createElement("div"); h.className="grp"; h.textContent=g; el.appendChild(h);
     groups[g].forEach(s=>{
       const b=document.createElement("button"); b.type="button"; b.className="row";
-      b.innerHTML=`<span class="chip" style="${chipStyle(s.k)}">${esc(s.id)}</span><span><span class="nm">${esc(s.n)}</span><br><span class="meta">${esc(sizeText(s.k))} · ${esc(KIND[s.k].meta)}</span></span>`;
+      b.innerHTML=`<span class="chip" style="${chipStyle(s.k)}">${esc(s.id)}</span><span><span class="nm">${esc(s.n)}</span><br><span class="meta">${esc(sizeText(s.k))} · ${esc(status(current,s))}${s.id===choice.first?" · your first choice":s.id===choice.alternate?" · your alternate":""}</span></span>`;
       b.addEventListener("click",()=>focus(s));
       el.appendChild(b);
     });
@@ -391,9 +520,12 @@ function legend(){
   const e = EVENTS[current], used = [...new Set(e.spaces.map(s=>s.k))];
   let h = used.map(k=>`<span><i style="${chipStyle(k)};border-radius:2px"></i>${esc(KIND[k].label)} · ${esc(sizeText(k))}</span>`).join("");
   (e.areas||[]).filter(z=>z.dash).forEach(z=>{ h += `<span><i class="zone"></i>${esc(z.t)}</span>`; });
+  if(Object.keys(assigned[current]||{}).length) h += `<span><i style="background:#5c636a;border-color:#dee2e6;border-radius:2px"></i>Assigned</span>`;
   document.getElementById("legend").innerHTML = h;
 }
 function dump(){
+  const issues = spacingIssues(current), box = document.getElementById("spacing");
+  if(box) box.textContent = issues.length ? "Fire code check: " + issues.map(x=>`${x.a}${x.b?"–"+x.b:""} (${x.rule}: ${x.detail})`).join("; ") : "Fire code check: all spaces pass.";
   const out = {}; EVENTS[current].spaces.forEach(s=>{ const ll=llOf(current,s); out[s.id]=[+(+ll[0]).toFixed(6),+(+ll[1]).toFixed(6)]; });
   document.getElementById("layoutOut").value = JSON.stringify({event:current, positions:out});
 }
@@ -404,11 +536,11 @@ document.getElementById("copyBtn").addEventListener("click",()=>{
     ()=>{ta.focus(); ta.select();});
 });
 document.getElementById("q").addEventListener("input",ev=>list(ev.target.value));
-document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>{ history.replaceState(null,"","#"+b.dataset.ev); render(b.dataset.ev); }));
+document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>{ history.replaceState(null,"","#"+b.dataset.ev); if(b.dataset.ev!==current){ choice.first=""; choice.alternate=""; } render(b.dataset.ev); if(PICK) sendChoice(); }));
 window.addEventListener("hashchange",()=>{ const h=location.hash.slice(1); if(EVENTS[h] && h!==current) render(h); });
 
 const start = location.hash.slice(1);
-render(EVENTS[start] ? start : "dia");
+render(EVENTS[start] ? start : "dia"); updatePickBar(); loadFeed();
 })();
 </script>
 </body>
