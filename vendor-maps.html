@@ -45,8 +45,8 @@ h1{font-family:var(--display);font-weight:800;font-size:clamp(1.5rem,3.4vw,2.1re
 .tabs button small{display:block;font-weight:500;font-size:.8rem;color:var(--muted);margin-top:2px}
 .tabs button:hover{border-color:var(--accent)}
 .tabs button[aria-selected="true"]{border-color:var(--accent);background:var(--soft);box-shadow:0 0 0 2px var(--accent) inset}
-.tabs button[aria-selected="true"]::after{content:"✓ Showing";margin-left:auto;font:700 .75rem/1 var(--body);color:#fff;background:var(--accent);padding:5px 7px;border-radius:6px;white-space:nowrap}
-@media (max-width:1000px){.tabs button[aria-selected="true"]::after{content:"✓"}}
+.tabs button{flex-wrap:wrap}
+.tabs button[aria-selected="true"]::after{content:var(--showing,"✓ Now showing");flex:1 0 100%;text-align:center;font:700 .78rem/1 var(--body);color:#fff;background:var(--accent);padding:6px 8px;border-radius:6px;margin-top:2px;box-sizing:border-box;max-width:100%}
 /* inside the application form: compact, fixed heights so the frame can size itself */
 /* framed (inside a WordPress page): fixed heights so the frame can size itself */
 body.framed .wrap{padding:8px 0 10px}
@@ -622,6 +622,7 @@ const start = location.hash.slice(1);
 if(ES){
   document.getElementById("pickLabelText").textContent = "Elige un evento para ver su mapa de vendedores";
   document.getElementById("formHint").textContent = "Elige tu evento en el paso 1 de la solicitud y su mapa aparecerá aquí para que solicites tu espacio.";
+  document.documentElement.style.setProperty("--showing", '"✓ Mostrando"');
   document.getElementById("previewNote").textContent = "Solo vista previa. Explora el mapa y los espacios de cada evento aquí; solicitarás tu espacio dentro de la solicitud de vendedor.";
   document.querySelector("h1").textContent = "Mapas de espacios para vendedores";
   const nm={dia:"Día de los Muertos",nye:"Año Nuevo",july4:"4 de julio",zozobra:"Zozobra"};
