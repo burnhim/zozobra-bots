@@ -69,6 +69,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--focus);outline-
 
 .facts{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0 0 10px;font-size:.92rem}
 .facts span{display:inline-flex;align-items:center;gap:7px}
+.facts .attend{background:#fff4d6;border:1.5px solid #f0b429;border-radius:999px;padding:3px 10px}
 .facts svg{width:17px;height:17px;color:var(--accent);flex:none}
 .banner{display:flex;gap:10px;align-items:flex-start;background:var(--soft);border-left:4px solid var(--accent);
   padding:10px 12px;border-radius:6px;margin-bottom:12px;font-size:.92rem}
@@ -230,7 +231,8 @@ const PLAZA_SPACES = [
   ...[[35.687779,-105.938628],[35.687748,-105.938513],[35.687716,-105.938398],[35.687684,-105.938282],[35.687652,-105.938167],[35.687621,-105.938052]]
      .map((ll,i)=>sp("C"+(i+1),"city","City-permitted vendors · Palace Ave",ll,"City-permitted vendor "+(i+1),18.6)),
   sp("I1","info","Information booths · nonprofits and agencies",[35.687604,-105.938626],"Information booth I1",13),
-  sp("I2","info","Information booths · nonprofits and agencies",[35.687518,-105.938285],"Information booth I2",13)
+  sp("I2","info","Information booths · nonprofits and agencies",[35.687518,-105.938285],"Information booth I2",13),
+  sp("M","merch","Kiwanis merchandise",[35.687549,-105.938711],"Kiwanis merchandise tent",13)
 ];
 const PLAZA_SCREENS = [{t:"Screen", ll:[35.687674,-105.93897]},{t:"Screen", ll:[35.687492,-105.938065]}];
 
@@ -262,6 +264,7 @@ const EVENTS = {
     center:[35.68755,-105.93860], zoom:20,
     facts:[
       ["cal","Friday, October 30 and Saturday, October 31, 2026"],
+      ["people","46,891 people attended in 2025","46,891 personas asistieron en 2025"],
       ["clock","Food truck sales 4–8 p.m. both nights"],
       ["truck","Load-in and inspections Friday, 3–5 p.m."]
     ],
@@ -273,7 +276,7 @@ const EVENTS = {
     logo:"img/vendor-map-logo-nye.png", logoAlt:"New Year's Eve on the Plaza logo",
     venue:"Santa Fe Plaza",
     center:[35.68755,-105.93860], zoom:20,
-    facts:[["cal","Thursday, December 31, 2026"]],
+    facts:[["cal","Thursday, December 31, 2026"],["people","13,980 people attended in 2025","13,980 personas asistieron en 2025"]],
     banner:AVAIL+" Available: three food truck spaces, two information booths for nonprofits and agencies, and six plaza booth spaces. <strong>Plaza booth spaces P1–P6 are only for vendors who already hold a City of Santa Fe Plaza vendor permit.</strong> The gray spaces on Palace Avenue are City-permitted vendors and are not available through Kiwanis.",
     spaces: [...PLAZA_SPACES, sp("S2","stage","E San Francisco St & Old Santa Fe Trail",[35.687103,-105.938194],"NYE Stage",55)],
     landmarks: [{t:"Bandstand", ll:[35.68761,-105.93845]}]
@@ -282,7 +285,7 @@ const EVENTS = {
     logo:"img/vendor-map-logo-july4.jpg", logoAlt:"Santa Fe 4th of July Fireworks Celebration logo",
     venue:"General Franklin E. Miles Park · 1027 Camino Carlos Rey",
     center:[35.65350,-105.98300], zoom:19,
-    facts:[["cal","Sunday, July 4, 2027"]],
+    facts:[["cal","Sunday, July 4, 2027"],["people","45,890 people attended in 2026","45,890 personas asistieron en 2026"]],
     banner:AVAIL+" Nothing may be set up inside the firework fallout zone.",
     spaces: [
       sp("1","truck","West food court",[35.653275,-105.98452],"Food truck space 1"),
@@ -334,14 +337,31 @@ const EVENTS = {
     logo:"img/vendor-map-logo-zozobra.png", logoAlt:"103rd Zozobra logo",
     venue:"Fort Marcy Park & Magers Field · 490 Bishops Lodge Rd",
     center:[35.6948,-105.9350], zoom:18,
-    facts:[["cal","Friday, September 3, 2027"]],
-    banner:AVAIL+" Space positions can shift when booths are marked on site.",
-    spaces: FM,
+    facts:[["cal","Friday, September 3, 2027"],["people","About 50,000 people attend in person","Cerca de 50,000 personas asisten en persona"]],
+    banner:AVAIL+" Space positions can shift when booths are marked on site. Nonprofit booths (blue) are for nonprofits and agencies. Merchandise is sold only through the Kiwanis merchandise tent.",
+    spaces: [...FM,
+  sp("M","merch","Kiwanis merchandise",[35.694628,-105.935145],"Kiwanis merchandise tent"),
+  sp("I1","info","Nonprofit booths",[35.69571,-105.935263],"Nonprofit booth I1"),
+  sp("I2","info","Nonprofit booths",[35.694755,-105.934516],"Nonprofit booth I2"),
+  sp("I3","info","Nonprofit row · east Magers Field",[35.6945479,-105.934171],"Nonprofit booth I3"),
+  sp("I4","info","Nonprofit row · east Magers Field",[35.6945108,-105.934171],"Nonprofit booth I4"),
+  sp("I5","info","Nonprofit row · east Magers Field",[35.6944738,-105.934171],"Nonprofit booth I5"),
+  sp("I6","info","Nonprofit row · east Magers Field",[35.6944367,-105.934171],"Nonprofit booth I6"),
+  sp("I7","info","Nonprofit row · east Magers Field",[35.6943722,-105.934171],"Nonprofit booth I7"),
+  sp("I8","info","Nonprofit row · east Magers Field",[35.6943351,-105.934171],"Nonprofit booth I8"),
+  sp("I9","info","Nonprofit row · east Magers Field",[35.694298,-105.934171],"Nonprofit booth I9"),
+  sp("I10","info","Nonprofit row · east Magers Field",[35.6942609,-105.934171],"Nonprofit booth I10"),
+  sp("I11","info","Nonprofit row · east Magers Field",[35.6941964,-105.934171],"Nonprofit booth I11"),
+  sp("I12","info","Nonprofit row · east Magers Field",[35.6941593,-105.934171],"Nonprofit booth I12"),
+  sp("I13","info","Nonprofit row · east Magers Field",[35.6941223,-105.934171],"Nonprofit booth I13"),
+  sp("I14","info","Nonprofit row · east Magers Field",[35.6940852,-105.934171],"Nonprofit booth I14")
+    ],
     landmarks:[{t:"Zozobra", ll:[35.69630,-105.93418]}]
   }
 };
 
 const ICON = {
+  people:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 14.2c3 .2 5.5 2.6 5.5 5.8"/></svg>',
   cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
   clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
   truck:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 7h13v10H1z"/><path d="M14 10h4l3 3v4h-7"/><circle cx="5.5" cy="18" r="2"/><circle cx="17.5" cy="18" r="2"/></svg>'
@@ -528,7 +548,7 @@ function render(ev, keepView){
   if(PICK){ document.querySelector("h1").textContent = (ES ? "Elige tu espacio · " : "Pick your space · ") + EVNAME[ev]; }
   for(const id of ["evlogo","maplogo"]){ const im=document.getElementById(id); if(im){ im.src=e.logo; im.alt=e.logoAlt; } }
   document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected", String(b.dataset.ev===ev)));
-  document.getElementById("facts").innerHTML = e.facts.map(f=>`<span>${ICON[f[0]]}${esc(f[1])}</span>`).join("");
+  document.getElementById("facts").innerHTML = e.facts.map(f=>{ const t=esc(ES&&f[2]?f[2]:f[1]); return f[0]==="people" ? `<span class="attend">${ICON[f[0]]}<strong>${t}</strong></span>` : `<span>${ICON[f[0]]}${t}</span>`; }).join("");
   document.getElementById("bannerText").innerHTML = e.banner;
   document.getElementById("venue").textContent = e.venue;
   document.getElementById("q").value = "";
