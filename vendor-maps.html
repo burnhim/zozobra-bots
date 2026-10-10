@@ -30,7 +30,11 @@ body[data-event="zozobra"]{ --accent:#a31621; }
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
 .wrap{max-width:1280px;margin:0 auto;padding-inline:16px;padding-block:16px 28px}
-header.top{margin-bottom:12px}
+header.top{margin-bottom:12px;display:flex;gap:14px;align-items:center}
+.evlogo{width:84px;height:84px;object-fit:contain;border-radius:10px;background:#fff;padding:4px;border:1px solid var(--line);flex:none}
+.maplogo{background:#fff;border-radius:10px;padding:5px;box-shadow:0 1px 6px rgba(0,0,0,.45)}
+.maplogo img{display:block;width:96px;height:96px;object-fit:contain}
+@media (max-width:600px){.evlogo{width:64px;height:64px}.maplogo img{width:70px;height:70px}}
 h1{font-family:var(--display);font-weight:800;font-size:clamp(1.5rem,3.4vw,2.1rem);line-height:1.15;margin:0;text-wrap:balance}
 .sub{color:var(--muted);margin:2px 0 0;font-size:.95rem}
 
@@ -90,6 +94,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--focus);outline-
 .leaflet-popup-content h3{margin:4px 0 2px;font-size:16px;line-height:1.25;color:#1e1a17}
 .leaflet-popup-content p{margin:2px 0;color:#3d3631}
 
+.pickbar[hidden]{display:none}
 .pickbar{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;background:var(--panel);border:1.5px solid var(--accent);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:.92rem}
 .pickbar button{font:600 .85rem var(--body);padding:6px 12px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
 .fine{color:var(--muted);font-size:.84rem;width:100%}
@@ -107,8 +112,11 @@ body.editing .edit{display:flex}
 <body data-event="dia">
 <div class="wrap">
   <header class="top">
+    <img id="evlogo" class="evlogo" src="" alt="" width="84" height="84">
+    <div>
     <h1>Vendor Site Maps</h1>
     <p class="sub">Kiwanis Club of Santa Fe events · tap a space on the map or in the list to see where it is</p>
+    </div>
   </header>
 
   <div class="tabs" role="tablist" aria-label="Event">
@@ -133,10 +141,10 @@ body.editing .edit{display:flex}
   </div>
 
   <div class="pickbar" id="pickbar" hidden>
-    <span><strong>Your first choice:</strong> <span id="pickFirst">not chosen</span></span>
-    <span><strong>Alternate:</strong> <span id="pickAlt">not chosen</span></span>
+    <span><strong id="pickFirstLbl">Your first choice:</strong> <span id="pickFirst">not chosen</span></span>
+    <span><strong id="pickAltLbl">Alternate:</strong> <span id="pickAlt">not chosen</span></span>
     <button type="button" id="pickClear">Clear</button>
-    <span class="fine">Tap an open space to choose it. Requests are not guaranteed; Kiwanis assigns every space, and the Fire Marshal's direction comes first.</span>
+    <span class="fine" id="pickHelp">Tap an open space to choose it. Requests are not guaranteed; Kiwanis assigns every space, and the Fire Marshal's direction comes first.</span>
   </div>
 
   <div class="work">
@@ -180,6 +188,7 @@ const KIND = {
   info:  {label:"Info tent space",  size:[10,10],  bg:"#1c7ed6", fg:"#ffffff", ring:"#ffffff", meta:"Available · nonprofits and agencies"},
   merch: {label:"Kiwanis merchandise booth", size:[10,10], bg:"#2b8a3e", fg:"#ffffff", ring:"#ffffff", meta:"Reserved"},
   beer:  {label:"Beer garden truck or trailer", size:[22,8.5], bg:"#f59f00", fg:"#1e1a17", ring:"#ffffff", meta:"Reserved"},
+  stage: {label:"Stage", size:[16,10], bg:"#1d3f7a", fg:"#ffffff", ring:"#ffd43b", meta:"New Year's Eve stage"},
   city:  {label:"City-permitted vendor", size:[10,10], bg:"#5c636a", fg:"#ffffff", ring:"#dee2e6", meta:"Not available through Kiwanis"}
 };
 function sizeText(k){ const z=KIND[k].size; return z[0]+" ft × "+z[1]+" ft"; }
@@ -224,6 +233,7 @@ const AVAIL = "<strong>Draft layout.</strong> Spaces are assigned after approval
 
 const EVENTS = {
   dia:{
+    logo:"img/vendor-map-logo-dia.jpg", logoAlt:"Día de los Muertos, Santa Fe Plaza logo",
     venue:"Santa Fe Plaza",
     center:[35.68755,-105.93860], zoom:20,
     facts:[
@@ -236,14 +246,16 @@ const EVENTS = {
     landmarks: [{t:"Bandstand", ll:[35.68761,-105.93845]}, ...PLAZA_SCREENS]
   },
   nye:{
+    logo:"img/vendor-map-logo-nye.png", logoAlt:"New Year's Eve on the Plaza logo",
     venue:"Santa Fe Plaza",
     center:[35.68755,-105.93860], zoom:20,
     facts:[["cal","Thursday, December 31, 2026"]],
     banner:AVAIL+" Available: three food truck spaces and six plaza booth spaces. The gray spaces on Palace Avenue are City-permitted vendors and are not available through Kiwanis.",
-    spaces: PLAZA_SPACES,
-    landmarks: [{t:"Bandstand", ll:[35.68761,-105.93845]}, ...PLAZA_SCREENS]
+    spaces: [...PLAZA_SPACES, sp("S2","stage","Plaza, southeast corner",[35.687222,-105.938362],"New Year's Eve stage 2",55)],
+    landmarks: [{t:"Bandstand", ll:[35.68761,-105.93845]}]
   },
   july4:{
+    logo:"img/vendor-map-logo-july4.jpg", logoAlt:"Santa Fe 4th of July Fireworks Celebration logo",
     venue:"General Franklin E. Miles Park · 1027 Camino Carlos Rey",
     center:[35.65350,-105.98300], zoom:19,
     facts:[["cal","Sunday, July 4, 2027"]],
@@ -295,6 +307,7 @@ const EVENTS = {
     ]
   },
   zozobra:{
+    logo:"img/vendor-map-logo-zozobra.png", logoAlt:"103rd Zozobra logo",
     venue:"Fort Marcy Park & Magers Field · 490 Bishops Lodge Rd",
     center:[35.6948,-105.9350], zoom:18,
     facts:[["cal","Friday, September 3, 2027"]],
@@ -324,10 +337,17 @@ const map = L.map("map", BAKED ? {maxZoom:21} : {layers:[satGroup]});
 if(!BAKED) L.control.layers({"Satellite":satGroup,"Streets":streets},null,{position:"topright"}).addTo(map);
 map.attributionControl.setPrefix(false);
 const base = L.layerGroup().addTo(map);
+const LogoControl = L.Control.extend({ options:{position:"bottomleft"}, onAdd(){ const d=L.DomUtil.create("div","maplogo"); d.innerHTML='<img id="maplogo" alt="">'; L.DomEvent.disableClickPropagation(d); return d; } });
+new LogoControl().addTo(map);
 
 const EDIT = /[?&]edit\b/.test(location.search);
 /* Vendors page embed: ?pick lets an applicant choose a first choice and an alternate, sent to the form on the page. */
 const PICK = /[?&]pick\b/.test(location.search);
+const ES = /[?&]lang=es\b/.test(location.search);
+const T = ES ? {first:"Primera opción", alt:"Alterno", firstLbl:"Tu primera opción:", altLbl:"Alterno:", none:"sin elegir", clear:"Borrar", note:"No garantizado.",
+  help:"Toca un espacio libre para elegirlo. Las solicitudes no están garantizadas; Kiwanis asigna todos los espacios y las indicaciones del Jefe de Bomberos tienen prioridad."}
+ : {first:"Make first choice", alt:"Make alternate", firstLbl:"Your first choice:", altLbl:"Alternate:", none:"not chosen", clear:"Clear", note:"Requests are not guaranteed.",
+  help:"Tap an open space to choose it. Requests are not guaranteed; Kiwanis assigns every space, and the Fire Marshal's direction comes first."};
 /* Published CSV of the "Map feed" tab in the Kiwanis Vendor Applications sheet (event, space, business). */
 const FEED_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vROV1sznn_jTJVGvy0qY804-YHeltgDj7huKtXsKiVXsV964K8-uH5PNt9QOb-8zcGNY5UZsB6THL4T/pub?gid=106&single=true&output=csv";
 const ASSIGNABLE = new Set(["truck","booth","info"]);
@@ -369,8 +389,10 @@ function choose(which, id){
 function updatePickBar(){
   const bar=document.getElementById("pickbar"); if(!bar) return;
   bar.hidden = !PICK;
-  document.getElementById("pickFirst").textContent = choice.first || "not chosen";
-  document.getElementById("pickAlt").textContent = choice.alternate || "not chosen";
+  document.getElementById("pickFirst").textContent = choice.first || T.none;
+  document.getElementById("pickAlt").textContent = choice.alternate || T.none;
+  document.getElementById("pickFirstLbl").textContent = T.firstLbl; document.getElementById("pickAltLbl").textContent = T.altLbl;
+  document.getElementById("pickClear").textContent = T.clear; document.getElementById("pickHelp").textContent = T.help;
 }
 window.addEventListener("message", e=>{
   const d=e.data; if(!d || d.source!=="kiwanis-vendor-form") return;
@@ -454,6 +476,7 @@ function render(ev, keepView){
   current = ev;
   const e = EVENTS[ev];
   document.body.dataset.event = ev;
+  for(const id of ["evlogo","maplogo"]){ const im=document.getElementById(id); if(im){ im.src=e.logo; im.alt=e.logoAlt; } }
   document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected", String(b.dataset.ev===ev)));
   document.getElementById("facts").innerHTML = e.facts.map(f=>`<span>${ICON[f[0]]}${esc(f[1])}</span>`).join("");
   document.getElementById("bannerText").innerHTML = e.banner;
@@ -478,7 +501,7 @@ function render(ev, keepView){
       fillColor: taken ? "#5c636a" : (k.bg==="#ffffff"?k.ring:k.bg), fillOpacity: taken ? .85 : .75}).addTo(layer);
     let pop = `<div class="pk">${esc(k.label)}</div><h3>${esc(s.n)}</h3><p>${esc(s.area)}</p><p>Size: ${esc(sizeText(s.k))}</p><p><strong>${esc(status(ev,s))}</strong></p>`;
     if(picked) pop += `<p>Your ${picked.toLowerCase()}</p>`;
-    if(PICK && ASSIGNABLE.has(s.k) && !taken) pop += `<div class="choose"><button type="button" data-choose="first" data-id="${esc(s.id)}">Make first choice</button><button type="button" data-choose="alternate" data-id="${esc(s.id)}">Make alternate</button></div><p class="fine">Requests are not guaranteed.</p>`;
+    if(PICK && ASSIGNABLE.has(s.k) && !taken) pop += `<div class="choose"><button type="button" data-choose="first" data-id="${esc(s.id)}">${T.first}</button><button type="button" data-choose="alternate" data-id="${esc(s.id)}">${T.alt}</button></div><p class="fine">${T.note}</p>`;
     fp.bindPopup(pop);
     const m = L.marker(llOf(ev,s),{icon:L.divIcon({className:"pin"+(picked?" picked":""),html:`<b style="${taken?"background:#5c636a;color:#fff;border-color:#dee2e6":chipStyle(s.k)}">${esc(s.id)}</b>`,iconSize:[0,0]}),
       draggable:EDIT, title:s.n, riseOnHover:true}).bindPopup(pop).addTo(layer);
