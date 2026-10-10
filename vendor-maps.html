@@ -108,6 +108,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--focus);outline-
 
 /* map pins (fixed colors: they sit on satellite imagery in either theme) */
 .pin{width:auto!important;height:auto!important;background:none;border:0}
+.pin b[data-nofit]{opacity:.4}
 .pin b{display:grid;place-items:center;min-width:24px;height:24px;padding:0 4px;border-radius:12px;
   font:600 11px/1 "IBM Plex Mono",ui-monospace,monospace;border:2px solid;box-shadow:0 1px 5px rgba(0,0,0,.6);transform:translate(-50%,-50%)}
 .tabs svg{display:none}
@@ -389,14 +390,26 @@ const EDIT = /[?&]edit\b/.test(location.search);
 const PICK = /[?&]pick\b/.test(location.search);
 const ES = /[?&]lang=es\b/.test(location.search);
 const T = ES ? {first:"Primera opción", alt:"Alterno", firstLbl:"Tu primera opción:", altLbl:"Alterno:", none:"sin elegir", clear:"Borrar", note:"No garantizado.",
-  help:"Toca un espacio libre para elegirlo. Las solicitudes no están garantizadas; Kiwanis asigna todos los espacios y las indicaciones del Jefe de Bomberos tienen prioridad."}
+  help:"Toca un espacio libre para elegirlo. Las solicitudes no están garantizadas; Kiwanis asigna todos los espacios y las indicaciones del Jefe de Bomberos tienen prioridad.",
+  faded:" Los espacios atenuados no corresponden a tu tipo de vendedor.", nofit:"Este espacio no corresponde al tipo de vendedor que elegiste en la solicitud."}
  : {first:"Make first choice", alt:"Make alternate", firstLbl:"Your first choice:", altLbl:"Alternate:", none:"not chosen", clear:"Clear", note:"Requests are not guaranteed.",
-  help:"Tap an open space to choose it. Requests are not guaranteed; Kiwanis assigns every space, and the Fire Marshal's direction comes first."};
+  help:"Tap an open space to choose it. Requests are not guaranteed; Kiwanis assigns every space, and the Fire Marshal's direction comes first.",
+  faded:" Faded spaces don't fit your vendor type.", nofit:"This space isn't for the vendor type you chose on the application."};
 /* Published CSV of the "Map feed" tab in the Kiwanis Vendor Applications sheet (event, space, business). */
 const FEED_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vROV1sznn_jTJVGvy0qY804-YHeltgDj7huKtXsKiVXsV964K8-uH5PNt9QOb-8zcGNY5UZsB6THL4T/pub?gid=106&single=true&output=csv";
 const ASSIGNABLE = new Set(["truck","booth","info","plaza"]);
 let assigned = {};               // assigned[event][SPACE] = business name
 const choice = {first:"", alternate:""};
+/* Kinds of space this applicant may request, from the vendor type and event they chose on the form (null = all). */
+let allow = null;
+function kindsFor(vtype, evraw){
+  const t=(vtype||"").toLowerCase(), ev=(evraw||"").toLowerCase();
+  if(/nonprofit|agency|information/.test(ev) || /nonprofit|agency|information/.test(t)) return new Set(["info"]);
+  if(/truck|trailer/.test(t)) return new Set(["truck"]);
+  if(/food booth|beverage|alcohol|merchandise|sponsor/.test(t)) return new Set(["booth","plaza"]);
+  return null;
+}
+function fits(s){ return !allow || !ASSIGNABLE.has(s.k) || allow.has(s.k); }
 function who(ev, s){ return (assigned[ev]||{})[s.id.toUpperCase()] || ""; }
 function status(ev, s){ if(!ASSIGNABLE.has(s.k)) return KIND[s.k].meta; return who(ev,s) ? "Assigned to " + who(ev,s) : KIND[s.k].meta; }
 function parseCSV(t){
@@ -436,7 +449,7 @@ function updatePickBar(){
   document.getElementById("pickFirst").textContent = choice.first || T.none;
   document.getElementById("pickAlt").textContent = choice.alternate || T.none;
   document.getElementById("pickFirstLbl").textContent = T.firstLbl; document.getElementById("pickAltLbl").textContent = T.altLbl;
-  document.getElementById("pickClear").textContent = T.clear; document.getElementById("pickHelp").textContent = T.help;
+  document.getElementById("pickClear").textContent = T.clear; document.getElementById("pickHelp").textContent = T.help + (allow ? T.faded : "");
 }
 const EVNAME = ES ? {dia:"Día de los Muertos", nye:"Año Nuevo en la Plaza", july4:"4 de julio", zozobra:"Zozobra"}
                   : {dia:"Día de los Muertos", nye:"New Year's Eve on the Plaza", july4:"Fourth of July", zozobra:"Zozobra"};
@@ -444,6 +457,7 @@ window.addEventListener("message", e=>{
   const d=e.data; if(!d || d.source!=="kiwanis-vendor-form" || !EVENTS[d.event]) return;
   document.body.classList.add("formled");
   map.invalidateSize();
+  if("vtype" in d || "evraw" in d) allow = kindsFor(d.vtype, d.evraw);
   if(d.event!==current){
     choice.first=""; choice.alternate="";
     if("first" in d){ choice.first=d.first||""; choice.alternate=d.alternate||""; }
@@ -451,6 +465,11 @@ window.addEventListener("message", e=>{
     if(!("first" in d)) sendChoice(); else updatePickBar();
   } else if("first" in d){ choice.first=d.first||""; choice.alternate=d.alternate||""; updatePickBar(); render(current,true); }
   else render(current);
+  const sp = EVENTS[current].spaces, bad = id => id && !fits(sp.find(x=>x.id===id) || {k:""});
+  if(bad(choice.first) || bad(choice.alternate)){
+    if(bad(choice.first)) choice.first=""; if(bad(choice.alternate)) choice.alternate="";
+    sendChoice(); render(current, true);
+  } else updatePickBar();
   postHeight();
 });
 let lastH=0;
@@ -566,16 +585,17 @@ function render(ev, keepView){
   e.landmarks.forEach(l=>L.marker(l.ll,{interactive:false,icon:L.divIcon({className:"pin landmark",html:`<b>${esc(l.t)}</b>`,iconSize:[0,0]})}).addTo(layer));
   e.spaces.forEach(s=>{
     const k = KIND[s.k];
-    const taken = !!who(ev,s), picked = s.id===choice.first ? "First choice" : s.id===choice.alternate ? "Alternate" : "";
+    const taken = !!who(ev,s), nofit = PICK && !fits(s), picked = s.id===choice.first ? "First choice" : s.id===choice.alternate ? "Alternate" : "";
     const fp = L.polygon(footprint(llOf(ev,s), k.size, s.rot), {color: picked ? "#ffd43b" : (k.bg==="#ffffff"?k.ring:"#ffffff"), weight: picked ? 4 : 2,
-      fillColor: taken ? "#5c636a" : (k.bg==="#ffffff"?k.ring:k.bg), fillOpacity: taken ? .85 : .75}).addTo(layer);
+      fillColor: taken ? "#5c636a" : (k.bg==="#ffffff"?k.ring:k.bg), fillOpacity: taken ? .85 : nofit ? .18 : .75, opacity: nofit ? .35 : 1}).addTo(layer);
     let pop = `<div class="pk">${esc(k.label)}</div><h3>${esc(s.n)}</h3><p>${esc(s.area)}</p><p>Size: ${esc(sizeText(s.k))}</p><p><strong>${esc(status(ev,s))}</strong></p>`;
     if(k.rule) pop += `<p class="rule">⚠️ ${esc(ES && k.ruleEs ? k.ruleEs : k.rule)}</p>`;
     if(picked) pop += `<p>Your ${picked.toLowerCase()}</p>`;
-    if(PICK && ASSIGNABLE.has(s.k) && !taken) pop += `<div class="choose"><button type="button" data-choose="first" data-id="${esc(s.id)}">${T.first}</button><button type="button" data-choose="alternate" data-id="${esc(s.id)}">${T.alt}</button></div><p class="fine">${T.note}</p>`;
+    if(nofit && !taken) pop += `<p class="rule">${esc(T.nofit)}</p>`;
+    else if(PICK && ASSIGNABLE.has(s.k) && !taken) pop += `<div class="choose"><button type="button" data-choose="first" data-id="${esc(s.id)}">${T.first}</button><button type="button" data-choose="alternate" data-id="${esc(s.id)}">${T.alt}</button></div><p class="fine">${T.note}</p>`;
     fp.bindPopup(pop);
     const pinHtml = s.k==="stage" ? `<b>${esc(s.n)}</b>` : `<b style="${taken?"background:#5c636a;color:#fff;border-color:#dee2e6":chipStyle(s.k)}">${esc(s.id)}</b>`;
-    const m = L.marker(llOf(ev,s),{icon:L.divIcon({className:"pin"+(s.k==="stage"?" landmark":"")+(picked?" picked":""),html:pinHtml,iconSize:[0,0]}),
+    const m = L.marker(llOf(ev,s),{icon:L.divIcon({className:"pin"+(s.k==="stage"?" landmark":"")+(picked?" picked":""),html:nofit ? pinHtml.replace("<b ", '<b data-nofit="1" ') : pinHtml,iconSize:[0,0]}),
       draggable:EDIT, title:s.n, riseOnHover:true}).bindPopup(pop).addTo(layer);
     if(EDIT){
       m.on("drag",()=>fp.setLatLngs(footprint([m.getLatLng().lat,m.getLatLng().lng], k.size, s.rot)));
