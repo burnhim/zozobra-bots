@@ -18,9 +18,6 @@
   --mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
   color-scheme: light;
 }
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --bg:#171412; --panel:#221e1b; --ink:#f3eee8; --muted:#c7bdb2; --line:#3b342e; --soft:#2e2433; --focus:#7db3ff; color-scheme:dark; } }
-:root[data-theme="dark"]{ --bg:#171412; --panel:#221e1b; --ink:#f3eee8; --muted:#c7bdb2; --line:#3b342e; --soft:#2e2433; --focus:#7db3ff; color-scheme:dark; }
 body[data-event="dia"]{ --accent:#6a2c91; }
 body[data-event="nye"]{ --accent:#1d3f7a; }
 body[data-event="july4"]{ --accent:#b3261e; }
@@ -38,10 +35,26 @@ header.top{margin-bottom:12px;display:flex;gap:14px;align-items:center}
 h1{font-family:var(--display);font-weight:800;font-size:clamp(1.5rem,3.4vw,2.1rem);line-height:1.15;margin:0;text-wrap:balance}
 .sub{color:var(--muted);margin:2px 0 0;font-size:.95rem}
 
-.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
-.tabs button{font:600 .92rem/1 var(--body);border:1.5px solid var(--line);background:var(--panel);color:var(--ink);
-  padding:10px 14px;border-radius:999px;cursor:pointer;display:inline-flex;gap:8px;align-items:center}
-.tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.picklabel{font:700 1.05rem/1.3 var(--display);margin:4px 0 8px;display:flex;align-items:center;gap:8px}
+.picklabel svg{width:20px;height:20px;color:var(--accent);flex:none}
+.tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 16px}
+@media (max-width:760px){.tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tabs button{font:700 1rem/1.25 var(--body);border:2px solid var(--line);background:var(--panel);color:var(--ink);text-align:left;
+  padding:10px 12px;border-radius:12px;cursor:pointer;display:flex;gap:10px;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.tabs button img{width:52px;height:52px;object-fit:contain;flex:none;background:#fff;border-radius:8px}
+.tabs button small{display:block;font-weight:500;font-size:.8rem;color:var(--muted);margin-top:2px}
+.tabs button:hover{border-color:var(--accent)}
+.tabs button[aria-selected="true"]{border-color:var(--accent);background:var(--soft);box-shadow:0 0 0 2px var(--accent) inset}
+.tabs button[aria-selected="true"]::after{content:"✓ Showing";margin-left:auto;font:700 .75rem/1 var(--body);color:#fff;background:var(--accent);padding:5px 7px;border-radius:6px;white-space:nowrap}
+@media (max-width:1000px){.tabs button[aria-selected="true"]::after{content:"✓"}}
+/* inside the application form: compact, fixed heights so the frame can size itself */
+body.inform .wrap{padding:8px 0 10px}
+body.inform header.top .sub{display:none}
+body.inform .evlogo{width:64px;height:64px}
+body.inform #map{height:520px;min-height:0}
+body.inform .side{max-height:520px}
+@media (max-width:900px){body.inform #map{height:420px} body.inform .side{max-height:380px}}
+body.inform.formled .tabs, body.inform.formled .picklabel{display:none}
 button:focus-visible,input:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
 .tabs svg{width:18px;height:18px;flex:none}
 
@@ -87,6 +100,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--focus);outline-
 .pin{width:auto!important;height:auto!important;background:none;border:0}
 .pin b{display:grid;place-items:center;min-width:24px;height:24px;padding:0 4px;border-radius:12px;
   font:600 11px/1 "IBM Plex Mono",ui-monospace,monospace;border:2px solid;box-shadow:0 1px 5px rgba(0,0,0,.6);transform:translate(-50%,-50%)}
+.tabs svg{display:none}
 .pin.landmark b{background:#1e1a17;border-color:#ffd43b;color:#ffd43b;font-family:"Bitter",serif;font-size:11px;padding:0 8px;height:24px;border-width:1.5px;white-space:nowrap}
 .pin.hl b{outline:3px solid #ffd43b;outline-offset:2px}
 .leaflet-popup-content{font-family:"Bitter",Georgia,serif;font-size:14px;line-height:1.4;margin:12px 14px}
@@ -119,19 +133,12 @@ body.editing .edit{display:flex}
     </div>
   </header>
 
+  <p class="picklabel" id="pickLabel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg><span id="pickLabelText">Choose an event to see its vendor map</span></p>
   <div class="tabs" role="tablist" aria-label="Event">
-    <button role="tab" data-ev="dia" aria-selected="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c-4.4 0-8 3.1-8 7.5 0 2.4 1.1 4.1 2.5 5.2V19a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-3.3c1.4-1.1 2.5-2.8 2.5-5.2C20 6.1 16.4 3 12 3z"/><circle cx="9" cy="11" r="1.6"/><circle cx="15" cy="11" r="1.6"/><path d="M10 17h4"/></svg>
-      Día de los Muertos</button>
-    <button role="tab" data-ev="nye" aria-selected="false">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>
-      New Year's Eve</button>
-    <button role="tab" data-ev="july4" aria-selected="false">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l2.4 6.9H22l-6 4.6 2.3 7L12 16.2 5.7 20.5l2.3-7-6-4.6h7.6z"/></svg>
-      Fourth of July</button>
-    <button role="tab" data-ev="zozobra" aria-selected="false">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22c4 0 7-3 7-7 0-4-3-6-4-9-1 2-2 3-3 3 0-2-1-5-3-7 0 4-4 7-4 13 0 4 3 7 7 7z"/></svg>
-      Zozobra</button>
+    <button role="tab" data-ev="dia" aria-selected="true"><img src="img/vendor-map-logo-dia.jpg" alt=""><span><span class="tn">Día de los Muertos</span><small class="ts">Santa Fe Plaza</small></span></button>
+    <button role="tab" data-ev="nye" aria-selected="false"><img src="img/vendor-map-logo-nye.png" alt=""><span><span class="tn">New Year's Eve</span><small class="ts">Santa Fe Plaza</small></span></button>
+    <button role="tab" data-ev="july4" aria-selected="false"><img src="img/vendor-map-logo-july4.jpg" alt=""><span><span class="tn">Fourth of July</span><small class="ts">Franklin E. Miles Park</small></span></button>
+    <button role="tab" data-ev="zozobra" aria-selected="false"><img src="img/vendor-map-logo-zozobra.png" alt=""><span><span class="tn">Zozobra</span><small class="ts">Fort Marcy Park</small></span></button>
   </div>
 
   <div class="facts" id="facts"></div>
@@ -394,10 +401,33 @@ function updatePickBar(){
   document.getElementById("pickFirstLbl").textContent = T.firstLbl; document.getElementById("pickAltLbl").textContent = T.altLbl;
   document.getElementById("pickClear").textContent = T.clear; document.getElementById("pickHelp").textContent = T.help;
 }
+const EVNAME = ES ? {dia:"Día de los Muertos", nye:"Año Nuevo en la Plaza", july4:"4 de julio", zozobra:"Zozobra"}
+                  : {dia:"Día de los Muertos", nye:"New Year's Eve on the Plaza", july4:"Fourth of July", zozobra:"Zozobra"};
 window.addEventListener("message", e=>{
-  const d=e.data; if(!d || d.source!=="kiwanis-vendor-form") return;
-  if(EVENTS[d.event] && d.event!==current){ choice.first=""; choice.alternate=""; render(d.event); sendChoice(); }
+  const d=e.data; if(!d || d.source!=="kiwanis-vendor-form" || !EVENTS[d.event]) return;
+  document.body.classList.add("formled");
+  map.invalidateSize();
+  if(d.event!==current){
+    choice.first=""; choice.alternate="";
+    if("first" in d){ choice.first=d.first||""; choice.alternate=d.alternate||""; }
+    render(d.event);
+    if(!("first" in d)) sendChoice(); else updatePickBar();
+  } else if("first" in d){ choice.first=d.first||""; choice.alternate=d.alternate||""; updatePickBar(); render(current,true); }
+  else render(current);
+  postHeight();
 });
+let lastH=0;
+function postHeight(){
+  if(!PICK || window.parent===window) return;
+  const h=Math.ceil(document.querySelector(".wrap").getBoundingClientRect().height);
+  if(!h) return;
+  if(h!==lastH){ lastH=h; window.parent.postMessage({source:"kiwanis-vendor-map", height:h}, "*"); }
+}
+if(PICK){
+  document.body.classList.add("inform");
+  if(window.ResizeObserver){ new ResizeObserver(()=>postHeight()).observe(document.body); new ResizeObserver(()=>{ const el=document.getElementById("map"); if(!(el.clientWidth&&el.clientHeight)) return; map.invalidateSize(); if(pendingFit) render(current,false); }).observe(document.getElementById("map")); }
+  window.addEventListener("load", postHeight);
+}
 document.addEventListener("click", e=>{
   const b=e.target.closest("[data-choose]"); if(b) choose(b.dataset.choose, b.dataset.id);
   if(e.target.closest("#pickClear")){ choice.first=""; choice.alternate=""; sendChoice(); render(current, true); }
@@ -405,7 +435,7 @@ document.addEventListener("click", e=>{
 if(EDIT) document.body.classList.add("editing");
 
 const layer = L.layerGroup().addTo(map);
-let markers = {}, current = "dia";
+let markers = {}, current = "dia"; var pendingFit = false;
 const moved = {};
 
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
@@ -476,6 +506,7 @@ function render(ev, keepView){
   current = ev;
   const e = EVENTS[ev];
   document.body.dataset.event = ev;
+  if(PICK){ document.querySelector("h1").textContent = (ES ? "Elige tu espacio · " : "Pick your space · ") + EVNAME[ev]; }
   for(const id of ["evlogo","maplogo"]){ const im=document.getElementById(id); if(im){ im.src=e.logo; im.alt=e.logoAlt; } }
   document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected", String(b.dataset.ev===ev)));
   document.getElementById("facts").innerHTML = e.facts.map(f=>`<span>${ICON[f[0]]}${esc(f[1])}</span>`).join("");
@@ -512,7 +543,11 @@ function render(ev, keepView){
     markers[s.id] = m;
   });
   const pts = e.spaces.map(s=>llOf(ev,s)).concat(e.landmarks.map(l=>l.ll));
-  if(!keepView) map.fitBounds(pts,{padding:[40,40],maxZoom:e.zoom});
+  if(!keepView){
+    const el=map.getContainer();
+    if(el.clientWidth && el.clientHeight){ map.invalidateSize(); map.fitBounds(pts,{padding:[40,40],maxZoom:e.zoom}); pendingFit=false; }
+    else pendingFit=true;
+  }
   list(""); legend(); if(EDIT) dump();
 }
 
@@ -563,7 +598,16 @@ document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",
 window.addEventListener("hashchange",()=>{ const h=location.hash.slice(1); if(EVENTS[h] && h!==current) render(h); });
 
 const start = location.hash.slice(1);
+if(ES){
+  document.getElementById("pickLabelText").textContent = "Elige un evento para ver su mapa de vendedores";
+  document.querySelector("h1").textContent = "Mapas de espacios para vendedores";
+  const nm={dia:"Día de los Muertos",nye:"Año Nuevo",july4:"4 de julio",zozobra:"Zozobra"};
+  const sb={dia:"Plaza de Santa Fe",nye:"Plaza de Santa Fe",july4:"Parque Franklin E. Miles",zozobra:"Parque Fort Marcy"};
+  document.querySelectorAll(".tabs button").forEach(b=>{ b.querySelector(".tn").textContent=nm[b.dataset.ev]; b.querySelector(".ts").textContent=sb[b.dataset.ev]; });
+  document.documentElement.lang="es";
+}
 render(EVENTS[start] ? start : "dia"); updatePickBar(); loadFeed();
+if(PICK && window.parent!==window) window.parent.postMessage({source:"kiwanis-vendor-map", ready:true}, "*");
 })();
 </script>
 </body>
