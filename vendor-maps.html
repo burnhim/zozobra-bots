@@ -55,6 +55,8 @@ body.inform #map{height:520px;min-height:0}
 body.inform .side{max-height:520px}
 @media (max-width:900px){body.inform #map{height:420px} body.inform .side{max-height:380px}}
 body.inform.formled .tabs, body.inform.formled .picklabel{display:none}
+.formhint{display:none;background:#fff4d6;border:2px solid #f0b429;border-radius:10px;padding:12px 14px;margin:0 0 12px;font-weight:700;color:#1e1a17}
+body.inform:not(.formled) .formhint{display:block}
 button:focus-visible,input:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
 .tabs svg{width:18px;height:18px;flex:none}
 
@@ -133,6 +135,7 @@ body.editing .edit{display:flex}
     </div>
   </header>
 
+  <p class="formhint" id="formHint">Choose your event in step 1 of the application, and this map switches to it. Until then, you can look at any event's map below.</p>
   <p class="picklabel" id="pickLabel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg><span id="pickLabelText">Choose an event to see its vendor map</span></p>
   <div class="tabs" role="tablist" aria-label="Event">
     <button role="tab" data-ev="dia" aria-selected="true"><img src="img/vendor-map-logo-dia.jpg" alt=""><span><span class="tn">Día de los Muertos</span><small class="ts">Santa Fe Plaza</small></span></button>
@@ -600,6 +603,7 @@ window.addEventListener("hashchange",()=>{ const h=location.hash.slice(1); if(EV
 const start = location.hash.slice(1);
 if(ES){
   document.getElementById("pickLabelText").textContent = "Elige un evento para ver su mapa de vendedores";
+  document.getElementById("formHint").textContent = "Elige tu evento en el paso 1 de la solicitud y este mapa cambiará a ese evento. Mientras tanto, puedes ver el mapa de cualquier evento abajo.";
   document.querySelector("h1").textContent = "Mapas de espacios para vendedores";
   const nm={dia:"Día de los Muertos",nye:"Año Nuevo",july4:"4 de julio",zozobra:"Zozobra"};
   const sb={dia:"Plaza de Santa Fe",nye:"Plaza de Santa Fe",july4:"Parque Franklin E. Miles",zozobra:"Parque Fort Marcy"};
