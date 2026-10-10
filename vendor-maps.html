@@ -329,7 +329,7 @@ const EDIT = /[?&]edit\b/.test(location.search);
 /* Vendors page embed: ?pick lets an applicant choose a first choice and an alternate, sent to the form on the page. */
 const PICK = /[?&]pick\b/.test(location.search);
 /* Published CSV of the "Map feed" tab in the Kiwanis Vendor Applications sheet (event, space, business). */
-const FEED_URL = "";
+const FEED_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vROV1sznn_jTJVGvy0qY804-YHeltgDj7huKtXsKiVXsV964K8-uH5PNt9QOb-8zcGNY5UZsB6THL4T/pub?gid=106&single=true&output=csv";
 const ASSIGNABLE = new Set(["truck","booth","info"]);
 let assigned = {};               // assigned[event][SPACE] = business name
 const choice = {first:"", alternate:""};
