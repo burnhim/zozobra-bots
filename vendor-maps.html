@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vendor Site Maps</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+/* Layout: event tabs, a note bar, then the map beside a searchable list of spaces (stacks on phones). */
+:root{
+  --bg:#f6f3ee; --panel:#ffffff; --ink:#1e1a17; --muted:#5d554d; --line:#ddd5ca;
+  --accent:#6a2c91; --accent-ink:#ffffff; --soft:#efe7f4; --focus:#1c6dd0;
+  --display:"Bitter", Georgia, "Times New Roman", serif;
+  --body:"Bitter", Georgia, "Times New Roman", serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#171412; --panel:#221e1b; --ink:#f3eee8; --muted:#c7bdb2; --line:#3b342e; --soft:#2e2433; --focus:#7db3ff; color-scheme:dark; } }
+:root[data-theme="dark"]{ --bg:#171412; --panel:#221e1b; --ink:#f3eee8; --muted:#c7bdb2; --line:#3b342e; --soft:#2e2433; --focus:#7db3ff; color-scheme:dark; }
+body[data-event="dia"]{ --accent:#6a2c91; }
+body[data-event="nye"]{ --accent:#1d3f7a; }
+body[data-event="july4"]{ --accent:#b3261e; }
+body[data-event="zozobra"]{ --accent:#a31621; }
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:1280px;margin:0 auto;padding-inline:16px;padding-block:16px 28px}
+header.top{margin-bottom:12px}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(1.5rem,3.4vw,2.1rem);line-height:1.15;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:2px 0 0;font-size:.95rem}
+
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.tabs button{font:600 .92rem/1 var(--body);border:1.5px solid var(--line);background:var(--panel);color:var(--ink);
+  padding:10px 14px;border-radius:999px;cursor:pointer;display:inline-flex;gap:8px;align-items:center}
+.tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.tabs svg{width:18px;height:18px;flex:none}
+
+.facts{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0 0 10px;font-size:.92rem}
+.facts span{display:inline-flex;align-items:center;gap:7px}
+.facts svg{width:17px;height:17px;color:var(--accent);flex:none}
+.banner{display:flex;gap:10px;align-items:flex-start;background:var(--soft);border-left:4px solid var(--accent);
+  padding:10px 12px;border-radius:6px;margin-bottom:12px;font-size:.92rem}
+.banner svg{flex:none;width:20px;height:20px;margin-top:2px;color:var(--accent)}
+
+.work{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;align-items:start}
+@media (max-width:900px){.work{grid-template-columns:minmax(0,1fr)}}
+.mapbox{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#2b2b2b}
+#map{height:min(72vh,700px);min-height:420px;width:100%}
+@media (max-width:900px){#map{height:60vh;min-height:360px}}
+
+.side{background:var(--panel);border:1px solid var(--line);border-radius:10px;display:flex;flex-direction:column;min-width:0;max-height:min(72vh,700px)}
+@media (max-width:900px){.side{max-height:none}}
+.side-head{padding:12px 12px 8px;border-bottom:1px solid var(--line);display:grid;gap:8px}
+.side-head h2{font:700 1.05rem/1.2 var(--display);margin:0;display:flex;align-items:center;gap:8px}
+.side-head h2 svg{width:20px;height:20px;color:var(--accent)}
+.venue{color:var(--muted);font-size:.88rem;margin:0}
+.search{position:relative;display:block}
+.search input{width:100%;font:500 .95rem var(--body);padding:9px 10px 9px 34px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.search svg{position:absolute;left:10px;top:50%;width:16px;height:16px;transform:translateY(-50%);color:var(--muted)}
+.list{overflow:auto;padding:4px 0 8px;min-height:0}
+.grp{font:700 .72rem/1 var(--body);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:12px 12px 6px}
+.row{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center;width:100%;text-align:left;
+  padding:7px 12px;border:0;background:transparent;color:var(--ink);font:inherit;cursor:pointer}
+.row:hover{background:var(--soft)}
+.row .nm{font-weight:600;line-height:1.3}
+.row .meta{color:var(--muted);font-size:.84rem;line-height:1.3}
+.chip{font:600 .8rem/1 var(--mono);min-width:30px;height:26px;padding:0 6px;border-radius:13px;display:inline-grid;place-items:center;border:2px solid;box-shadow:0 0 0 1px rgba(0,0,0,.2)}
+.empty{padding:16px 12px;color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;padding:10px 12px;border-top:1px solid var(--line);font-size:.82rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:13px;height:13px;border-radius:50%;display:inline-block;border:2px solid;box-shadow:0 0 0 1px rgba(0,0,0,.25)}
+.legend i.zone{border-radius:2px;background:transparent!important;border-color:#e03131;border-style:dashed}
+
+.foot{margin-top:12px;color:var(--muted);font-size:.84rem;display:flex;flex-wrap:wrap;gap:6px 18px}
+
+/* map pins (fixed colors: they sit on satellite imagery in either theme) */
+.pin{width:auto!important;height:auto!important;background:none;border:0}
+.pin b{display:grid;place-items:center;min-width:24px;height:24px;padding:0 4px;border-radius:12px;
+  font:600 11px/1 "IBM Plex Mono",ui-monospace,monospace;border:2px solid;box-shadow:0 1px 5px rgba(0,0,0,.6);transform:translate(-50%,-50%)}
+.pin.landmark b{background:#1e1a17;border-color:#ffd43b;color:#ffd43b;font-family:"Bitter",serif;font-size:11px;padding:0 8px;height:24px;border-width:1.5px;white-space:nowrap}
+.pin.hl b{outline:3px solid #ffd43b;outline-offset:2px}
+.leaflet-popup-content{font-family:"Bitter",Georgia,serif;font-size:14px;line-height:1.4;margin:12px 14px}
+.leaflet-popup-content .pk{font:600 11px/1 "IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.06em;color:#6b6259}
+.leaflet-popup-content h3{margin:4px 0 2px;font-size:16px;line-height:1.25;color:#1e1a17}
+.leaflet-popup-content p{margin:2px 0;color:#3d3631}
+
+.edit{display:none;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px;border-top:1px dashed var(--line)}
+body.editing .edit{display:flex}
+.edit button{font:600 .85rem var(--body);padding:8px 12px;border-radius:8px;border:1.5px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer}
+.edit textarea{width:100%;min-height:90px;font:12px/1.4 var(--mono);background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:8px}
+</style>
+</head>
+<body data-event="dia">
+<div class="wrap">
+  <header class="top">
+    <h1>Vendor Site Maps</h1>
+    <p class="sub">Kiwanis Club of Santa Fe events · tap a space on the map or in the list to see where it is</p>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Event">
+    <button role="tab" data-ev="dia" aria-selected="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c-4.4 0-8 3.1-8 7.5 0 2.4 1.1 4.1 2.5 5.2V19a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-3.3c1.4-1.1 2.5-2.8 2.5-5.2C20 6.1 16.4 3 12 3z"/><circle cx="9" cy="11" r="1.6"/><circle cx="15" cy="11" r="1.6"/><path d="M10 17h4"/></svg>
+      Día de los Muertos</button>
+    <button role="tab" data-ev="nye" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>
+      New Year's Eve</button>
+    <button role="tab" data-ev="july4" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l2.4 6.9H22l-6 4.6 2.3 7L12 16.2 5.7 20.5l2.3-7-6-4.6h7.6z"/></svg>
+      Fourth of July</button>
+    <button role="tab" data-ev="zozobra" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22c4 0 7-3 7-7 0-4-3-6-4-9-1 2-2 3-3 3 0-2-1-5-3-7 0 4-4 7-4 13 0 4 3 7 7 7z"/></svg>
+      Zozobra</button>
+  </div>
+
+  <div class="facts" id="facts"></div>
+  <div class="banner" role="note">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16.5v.5"/></svg>
+    <div id="bannerText"></div>
+  </div>
+
+  <div class="work">
+    <div class="mapbox"><div id="map" role="region" aria-label="Vendor map"></div></div>
+    <aside class="side" aria-label="Vendor spaces">
+      <div class="side-head">
+        <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 7h13v10H1z"/><path d="M14 10h4l3 3v4h-7"/><circle cx="5.5" cy="18" r="2"/><circle cx="17.5" cy="18" r="2"/></svg><span>Vendor spaces</span></h2>
+        <p class="venue" id="venue"></p>
+        <label class="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input id="q" type="search" placeholder="Space number or name" autocomplete="off" aria-label="Search vendor spaces">
+        </label>
+      </div>
+      <div class="list" id="list"></div>
+      <div class="legend" id="legend"></div>
+      <div class="edit">
+        <strong>Layout tools</strong>
+        <span style="color:var(--muted);font-size:.85rem">Drag any pin, then copy the layout and send it back.</span>
+        <button type="button" id="copyBtn">Copy layout</button>
+        <textarea id="layoutOut" readonly aria-label="Layout data"></textarea>
+      </div>
+    </aside>
+  </div>
+
+  <div class="foot">
+    <span>Questions about your space: vendors@burnzozobra.com</span>
+    <span>Imagery: Esri, Maxar, Earthstar Geographics · Streets: © OpenStreetMap contributors</span>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+(function(){
+"use strict";
+
+/* Kinds of space. Pin colors are fixed because they sit on aerial imagery. */
+const KIND = {
+  truck: {label:"Food truck space", size:[22,8.5], bg:"#ffffff", fg:"#1e1a17", ring:"#e8590c", meta:"Available"},
+  booth: {label:"Booth space",      size:[10,10],  bg:"#9c36b5", fg:"#ffffff", ring:"#ffffff", meta:"Available · food booth or tent"},
+  info:  {label:"Info tent space",  size:[10,10],  bg:"#1c7ed6", fg:"#ffffff", ring:"#ffffff", meta:"Available · nonprofits and agencies"},
+  merch: {label:"Kiwanis merchandise booth", size:[10,10], bg:"#2b8a3e", fg:"#ffffff", ring:"#ffffff", meta:"Reserved"},
+  beer:  {label:"Beer garden truck or trailer", size:[22,8.5], bg:"#f59f00", fg:"#1e1a17", ring:"#ffffff", meta:"Reserved"},
+  city:  {label:"City-permitted vendor", size:[10,10], bg:"#5c636a", fg:"#ffffff", ring:"#dee2e6", meta:"Not available through Kiwanis"}
+};
+function sizeText(k){ const z=KIND[k].size; return z[0]+" ft × "+z[1]+" ft"; }
+function sp(id, k, area, ll, n, rot){ return {id, k, area, ll, n: n || (KIND[k].label+" "+id), rot: rot||0}; }
+
+/* ---------- Santa Fe Plaza (Día and NYE share this layout, from the City's Plaza map) ---------- */
+const PLAZA_SPACES = [
+  sp("T1","truck","Food trucks · Lincoln Ave & W Palace Ave",[35.68797,-105.93880],"Food truck space 1",19),
+  sp("T2","truck","Food trucks · Lincoln Ave & W Palace Ave",[35.687918,-105.939102],"Food truck space 2",108),
+  sp("T3","truck","Food trucks · Lincoln Ave & W Palace Ave",[35.687983,-105.939343],"Food truck space 3",108),
+  sp("P1","booth","Plaza booth spaces",[35.687649,-105.938837],"Booth space P1",13),
+  sp("P2","booth","Plaza booth spaces",[35.687507,-105.938147],"Booth space P2",13),
+  sp("P3","booth","Plaza booth spaces",[35.68733,-105.938216],"Booth space P3",13),
+  sp("P4","booth","Plaza booth spaces",[35.687305,-105.938944],"Booth space P4",13),
+  sp("P5","booth","Plaza booth spaces",[35.687222,-105.938639],"Booth space P5",13),
+  sp("P6","booth","Plaza booth spaces",[35.68717,-105.938318],"Booth space P6",13),
+  ...[[35.687779,-105.938628],[35.687748,-105.938513],[35.687716,-105.938398],[35.687684,-105.938282],[35.687652,-105.938167],[35.687621,-105.938052]]
+     .map((ll,i)=>sp("C"+(i+1),"city","City-permitted vendors · Palace Ave",ll,"City-permitted vendor "+(i+1),18.6))
+];
+const PLAZA_SCREENS = [{t:"Screen", ll:[35.687674,-105.93897]},{t:"Screen", ll:[35.687492,-105.938065]}];
+
+/* ---------- Fort Marcy (positions from the 2026 vendor location map; all open for 2027) ---------- */
+const FM = [
+  ["1","Pickleball lot",[35.695877,-105.93585]],["2","Pickleball lot",[35.695804,-105.935835]],["3","Pickleball lot",[35.695727,-105.935835]],
+  ["4","Pickleball lot",[35.695646,-105.935835]],["5","Pickleball lot",[35.695557,-105.935844]],["6","Pickleball lot",[35.695731,-105.93567]],
+  ["7","Pickleball lot",[35.695654,-105.935649]],
+  ["8","Ballpark",[35.695387,-105.93538]],["9","Ballpark",[35.695153,-105.934333]],["32","Ballpark",[35.695246,-105.9348]],["33","Ballpark",[35.695865,-105.935192]],
+  ["10","Scoreboard",[35.695105,-105.933995]],["11","Scoreboard",[35.695105,-105.933861]],["12","Scoreboard",[35.695119,-105.933747]],
+  ["34","Complex lot",[35.694925,-105.935888]],
+  ["13","Magers Field",[35.694845,-105.934931]],["14","Magers Field",[35.69477,-105.934321]],["15","Magers Field",[35.694731,-105.934818]],
+  ["16","Magers Field",[35.694536,-105.934872]],["17","Magers Field",[35.694415,-105.935129]],["18","Magers Field",[35.69443,-105.93529]],
+  ["19","Magers Field",[35.69443,-105.935398]],["20","Magers Field",[35.69443,-105.935512]],["21","Magers Field",[35.694308,-105.935583]],
+  ["22","Magers Field",[35.694235,-105.93553]],["23","Magers Field",[35.694162,-105.93553]],["24","Magers Field",[35.694085,-105.935548]],
+  ["25","Magers Field",[35.693992,-105.935452]],["26","Magers Field",[35.693944,-105.935308]],["27","Magers Field",[35.693944,-105.935201]],
+  ["28","Magers Field",[35.694041,-105.935111]],["29","Magers Field",[35.694124,-105.935111]],["30","Magers Field",[35.694211,-105.935093]],
+  ["31","Magers Field",[35.694279,-105.935141]],["35","Magers Field",[35.694959,-105.935506]],["36","Magers Field",[35.694901,-105.935051]],
+  ["37","Magers Field",[35.694677,-105.934214]],["38","Magers Field",[35.693881,-105.934333]]
+].map(r=>{ const t=["1","2","3","4","5","6","7","10","11","12"].includes(r[0]); return sp(r[0], t?"truck":"booth", r[1], r[2], (t?"Food truck space ":"Booth space ")+r[0], t?90:0); });
+
+function trucks(arr, area){ return arr.map((ll,i)=>sp(String(i+1),"truck",area,ll,"Food truck space "+(i+1))); }
+const AVAIL = "<strong>Draft layout.</strong> Spaces are assigned after approval, and the Fire Marshal's direction always takes precedence.";
+
+const EVENTS = {
+  dia:{
+    venue:"Santa Fe Plaza",
+    center:[35.68755,-105.93860], zoom:20,
+    facts:[
+      ["cal","Friday, October 30 and Saturday, October 31, 2026"],
+      ["clock","Food truck sales 4–8 p.m. both nights"],
+      ["truck","Load-in and inspections Friday, 3–5 p.m."]
+    ],
+    banner:AVAIL+" Available: three food truck spaces and six plaza booth spaces. The gray spaces on Palace Avenue are City-permitted vendors and are not available through Kiwanis. Merchandise is sold only through the Kiwanis merchandise booth, on consignment.",
+    spaces: PLAZA_SPACES,
+    landmarks: [{t:"Bandstand", ll:[35.68761,-105.93845]}, ...PLAZA_SCREENS]
+  },
+  nye:{
+    venue:"Santa Fe Plaza",
+    center:[35.68755,-105.93860], zoom:20,
+    facts:[["cal","Thursday, December 31, 2026"]],
+    banner:AVAIL+" Available: three food truck spaces and six plaza booth spaces. The gray spaces on Palace Avenue are City-permitted vendors and are not available through Kiwanis.",
+    spaces: PLAZA_SPACES,
+    landmarks: [{t:"Bandstand", ll:[35.68761,-105.93845]}, ...PLAZA_SCREENS]
+  },
+  july4:{
+    venue:"General Franklin E. Miles Park · 1027 Camino Carlos Rey",
+    center:[35.65350,-105.98300], zoom:19,
+    facts:[["cal","Sunday, July 4, 2027"]],
+    banner:AVAIL+" Nothing may be set up inside the firework fallout zone.",
+    spaces: [
+      sp("1","truck","West food court",[35.653273, -105.984528],"Food truck space 1"),
+      sp("2","truck","West food court",[35.653193, -105.984526],"Food truck space 2"),
+      sp("3","truck","West food court",[35.653106, -105.984527],"Food truck space 3"),
+      sp("4","truck","West food court",[35.652952, -105.984517],"Food truck space 4"),
+      sp("5","truck","West food court",[35.652862, -105.984519],"Food truck space 5"),
+      sp("6","truck","West food court",[35.653246, -105.98436],"Food truck space 6"),
+      sp("7","truck","West food court",[35.65314, -105.984354],"Food truck space 7"),
+      sp("8","truck","West food court",[35.652996, -105.984357],"Food truck space 8"),
+      sp("9","truck","West food court",[35.652884, -105.984353],"Food truck space 9"),
+      sp("I1","info","West food court",[35.65304,-105.984525],"Info tent space 1"),
+      sp("I2","info","Non-profit and info row",[35.653774, -105.98462],"Info tent space 2"),
+      sp("I3","info","Non-profit and info row",[35.653774, -105.98451],"Info tent space 3"),
+      sp("I4","info","Non-profit and info row",[35.653775, -105.9844],"Info tent space 4"),
+      sp("M","merch","West food court",[35.653345,-105.984238],"Kiwanis/Zozobra Merchandise Booth"),
+      sp("10","truck","Beer garden area",[35.654451,-105.981899],"Food truck space 10"),
+      sp("B1","booth","Beer garden area",[35.654631, -105.982689],"Booth space B1",30),
+      sp("B2","booth","Beer garden area",[35.654674, -105.982595],"Booth space B2",30),
+      sp("B3","booth","Beer garden area",[35.654713, -105.982522],"Booth space B3",30),
+      sp("B4","booth","Beer garden area",[35.654755, -105.982437],"Booth space B4",30),
+      sp("BG","beer","Beer garden area",[35.65437,-105.981841],"Beer garden truck or trailer"),
+      sp("11","truck","North, by Fire and Police",[35.655626,-105.983864],"Food truck space 11",53),
+      sp("12","truck","North, by Fire and Police",[35.655693,-105.983698],"Food truck space 12",51)
+    ],
+    landmarks:[
+      {t:"Stage", ll:[35.654368,-105.983295]},
+      {t:"Vendor parking", ll:[35.653555,-105.984688]},
+      {t:"Water, grease barrels & graywater", ll:[35.653361,-105.984611]},
+      {t:"Potable water spigot", ll:[35.653769,-105.98398]},
+      {t:"Fire", ll:[35.655637,-105.984019]},
+      {t:"Police", ll:[35.655776,-105.983703]}
+    ],
+    areas:[
+      {t:"Firework fallout zone", poly:[[35.653274, -105.98418], [35.653202, -105.984167], [35.652982, -105.984129], [35.652762, -105.984017], [35.652548, -105.983853], [35.6523, -105.983389], [35.652189, -105.98303], [35.652191, -105.982901], [35.652187, -105.982462], [35.652228, -105.981769], [35.652472, -105.981941], [35.652577, -105.981967], [35.652657, -105.981962], [35.653366, -105.98241], [35.653568, -105.98205], [35.653751, -105.981769], [35.653939, -105.981428], [35.654216, -105.981631], [35.654084, -105.982016], [35.654091, -105.982268], [35.654234, -105.982564], [35.654311, -105.982877], [35.654272, -105.983083], [35.654163, -105.9834], [35.654065, -105.983622], [35.65381, -105.983907], [35.653586, -105.98407], [35.653274, -105.98418]], color:"#e03131", dash:true, label:[35.6533,-105.9829]},
+      {t:"Food court", poly:[[35.653725, -105.98478], [35.652696, -105.984797], [35.65267, -105.984287], [35.653698, -105.984297], [35.653725, -105.98478]], color:"#9c36b5"},
+      {t:"Beer garden", poly:[[35.654669, -105.98216], [35.654403, -105.982655], [35.654245, -105.982425], [35.654176, -105.982216], [35.65424, -105.981754], [35.654441, -105.981825], [35.654678, -105.982046], [35.654669, -105.98216]], color:"#f59f00", label:[35.65452,-105.98215]},
+      {t:"Info tents", poly:[[35.653792, -105.984666], [35.653756, -105.984668], [35.653751, -105.984359], [35.653799, -105.98436], [35.653792, -105.984666]], color:"#1c7ed6"},
+      {t:"Stage", poly:[[35.654308, -105.983428], [35.654309, -105.98317], [35.654411, -105.983141], [35.654412, -105.983483], [35.654308, -105.983428]], color:"#0b7285"},
+      {t:"Drone launch", poly:[[35.653505, -105.981192], [35.653693, -105.981326], [35.653621, -105.981506], [35.653545, -105.981643], [35.653375, -105.981476], [35.653505, -105.981192]], color:"#0b7285", label:[35.65353,-105.98142]}
+    ]
+  },
+  zozobra:{
+    venue:"Fort Marcy Park & Magers Field · 490 Bishops Lodge Rd",
+    center:[35.6948,-105.9350], zoom:18,
+    facts:[["cal","Friday, September 3, 2027"]],
+    banner:AVAIL+" Space positions can shift when booths are marked on site.",
+    spaces: FM,
+    landmarks:[{t:"Zozobra", ll:[35.69630,-105.93418]}]
+  }
+};
+
+const ICON = {
+  cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+  clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  truck:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 7h13v10H1z"/><path d="M14 10h4l3 3v4h-7"/><circle cx="5.5" cy="18" r="2"/><circle cx="17.5" cy="18" r="2"/></svg>'
+};
+
+/* ---------- map ---------- */
+const sat = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+  {maxZoom:21, maxNativeZoom:19, attribution:"Imagery © Esri, Maxar, Earthstar Geographics"});
+const roads = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}",
+  {maxZoom:21, maxNativeZoom:19, opacity:.9});
+const streets = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+  {maxZoom:21, maxNativeZoom:19, attribution:"© OpenStreetMap contributors"});
+const satGroup = L.layerGroup([sat, roads]);
+const map = L.map("map",{layers:[satGroup]});
+L.control.layers({"Satellite":satGroup,"Streets":streets},null,{position:"topright"}).addTo(map);
+map.attributionControl.setPrefix(false);
+
+const EDIT = /[?&]edit\b/.test(location.search);
+if(EDIT) document.body.classList.add("editing");
+
+const layer = L.layerGroup().addTo(map);
+let markers = {}, current = "dia";
+const moved = {};
+
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function llOf(ev,s){ return (moved[ev] && moved[ev][s.id]) || s.ll; }
+function chipStyle(k){ const c=KIND[k]; return `background:${c.bg};color:${c.fg};border-color:${c.ring}`; }
+
+/* Rectangle of the given size (feet: length along the bearing, width across) centered on ll, rotated to bearing degrees from north. */
+function footprint(ll, size, bearing){
+  const ft = 0.3048, L2 = size[0]*ft/2, W2 = size[1]*ft/2, t = bearing*Math.PI/180;
+  const ux = Math.sin(t), uy = Math.cos(t), vx = Math.cos(t), vy = -Math.sin(t);
+  const mLat = 111320, mLng = 111320*Math.cos(ll[0]*Math.PI/180);
+  return [[1,1],[1,-1],[-1,-1],[-1,1]].map(([a,b])=>{
+    const e = a*L2*ux + b*W2*vx, n = a*L2*uy + b*W2*vy;
+    return [ll[0] + n/mLat, ll[1] + e/mLng];
+  });
+}
+function render(ev){
+  current = ev;
+  const e = EVENTS[ev];
+  document.body.dataset.event = ev;
+  document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected", String(b.dataset.ev===ev)));
+  document.getElementById("facts").innerHTML = e.facts.map(f=>`<span>${ICON[f[0]]}${esc(f[1])}</span>`).join("");
+  document.getElementById("bannerText").innerHTML = e.banner;
+  document.getElementById("venue").textContent = e.venue;
+  document.getElementById("q").value = "";
+
+  layer.clearLayers(); markers = {};
+  (e.areas||[]).forEach(z=>{
+    L.polygon(z.poly,{color:z.color,weight:z.dash?3:2,dashArray:z.dash?"8 6":null,fillColor:z.color,fillOpacity:z.dash?.10:.18,interactive:false}).addTo(layer);
+    if(z.label) L.marker(z.label,{interactive:false,icon:L.divIcon({className:"pin landmark",html:`<b style="border-color:${z.color};color:#fff;background:${z.dash?"#c92a2a":"#1e1a17"}">${esc(z.t)}</b>`,iconSize:[0,0]})}).addTo(layer);
+  });
+  e.landmarks.forEach(l=>L.marker(l.ll,{interactive:false,icon:L.divIcon({className:"pin landmark",html:`<b>${esc(l.t)}</b>`,iconSize:[0,0]})}).addTo(layer));
+  e.spaces.forEach(s=>{
+    const k = KIND[s.k];
+    const fp = L.polygon(footprint(llOf(ev,s), k.size, s.rot), {color:k.bg==="#ffffff"?k.ring:"#ffffff", weight:2, fillColor:k.bg==="#ffffff"?k.ring:k.bg, fillOpacity:.75}).addTo(layer);
+    const pop = `<div class="pk">${esc(k.label)}</div><h3>${esc(s.n)}</h3><p>${esc(s.area)}</p><p>Size: ${esc(sizeText(s.k))}</p><p><strong>${esc(k.meta)}</strong></p>`;
+    fp.bindPopup(pop);
+    const m = L.marker(llOf(ev,s),{icon:L.divIcon({className:"pin",html:`<b style="${chipStyle(s.k)}">${esc(s.id)}</b>`,iconSize:[0,0]}),
+      draggable:EDIT, title:s.n, riseOnHover:true}).bindPopup(pop).addTo(layer);
+    if(EDIT){
+      m.on("drag",()=>fp.setLatLngs(footprint([m.getLatLng().lat,m.getLatLng().lng], k.size, s.rot)));
+      m.on("dragend",()=>{ const p=m.getLatLng(); (moved[ev]=moved[ev]||{})[s.id]=[+p.lat.toFixed(6),+p.lng.toFixed(6)]; dump(); });
+    }
+    markers[s.id] = m;
+  });
+  const pts = e.spaces.map(s=>llOf(ev,s)).concat(e.landmarks.map(l=>l.ll));
+  map.fitBounds(pts,{padding:[40,40],maxZoom:e.zoom});
+  list(""); legend(); if(EDIT) dump();
+}
+
+function list(q){
+  const e = EVENTS[current], el = document.getElementById("list"), needle = q.trim().toLowerCase();
+  const items = e.spaces.filter(s=>!needle || s.id.toLowerCase()===needle || s.n.toLowerCase().includes(needle) || s.area.toLowerCase().includes(needle));
+  el.innerHTML = "";
+  if(!items.length){ el.innerHTML = `<div class="empty">No space matches “${esc(q)}”. Try a space number.</div>`; return; }
+  const groups = {};
+  items.forEach(s=>(groups[s.area]=groups[s.area]||[]).push(s));
+  Object.keys(groups).forEach(g=>{
+    const h=document.createElement("div"); h.className="grp"; h.textContent=g; el.appendChild(h);
+    groups[g].forEach(s=>{
+      const b=document.createElement("button"); b.type="button"; b.className="row";
+      b.innerHTML=`<span class="chip" style="${chipStyle(s.k)}">${esc(s.id)}</span><span><span class="nm">${esc(s.n)}</span><br><span class="meta">${esc(sizeText(s.k))} · ${esc(KIND[s.k].meta)}</span></span>`;
+      b.addEventListener("click",()=>focus(s));
+      el.appendChild(b);
+    });
+  });
+}
+function focus(s){
+  const m = markers[s.id]; if(!m) return;
+  map.setView(m.getLatLng(), Math.max(map.getZoom(), EVENTS[current].zoom)); m.openPopup();
+  const el = m.getElement(); if(el){ el.classList.add("hl"); setTimeout(()=>el.classList.remove("hl"),2200); }
+  if(window.matchMedia("(max-width:900px)").matches) document.getElementById("map").scrollIntoView({behavior:"smooth",block:"center"});
+}
+function legend(){
+  const e = EVENTS[current], used = [...new Set(e.spaces.map(s=>s.k))];
+  let h = used.map(k=>`<span><i style="${chipStyle(k)};border-radius:2px"></i>${esc(KIND[k].label)} · ${esc(sizeText(k))}</span>`).join("");
+  (e.areas||[]).filter(z=>z.dash).forEach(z=>{ h += `<span><i class="zone"></i>${esc(z.t)}</span>`; });
+  document.getElementById("legend").innerHTML = h;
+}
+function dump(){
+  const out = {}; EVENTS[current].spaces.forEach(s=>{ const ll=llOf(current,s); out[s.id]=[+(+ll[0]).toFixed(6),+(+ll[1]).toFixed(6)]; });
+  document.getElementById("layoutOut").value = JSON.stringify({event:current, positions:out});
+}
+document.getElementById("copyBtn").addEventListener("click",()=>{
+  const ta=document.getElementById("layoutOut"), btn=document.getElementById("copyBtn");
+  (navigator.clipboard ? navigator.clipboard.writeText(ta.value) : Promise.reject()).then(
+    ()=>{btn.textContent="Copied"; setTimeout(()=>btn.textContent="Copy layout",1600);},
+    ()=>{ta.focus(); ta.select();});
+});
+document.getElementById("q").addEventListener("input",ev=>list(ev.target.value));
+document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>{ history.replaceState(null,"","#"+b.dataset.ev); render(b.dataset.ev); }));
+window.addEventListener("hashchange",()=>{ const h=location.hash.slice(1); if(EVENTS[h] && h!==current) render(h); });
+
+const start = location.hash.slice(1);
+render(EVENTS[start] ? start : "dia");
+})();
+</script>
+</body>
+</html>
