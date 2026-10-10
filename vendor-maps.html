@@ -114,6 +114,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--focus);outline-
 .pickbar{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;background:var(--panel);border:1.5px solid var(--accent);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:.92rem}
 .pickbar button{font:600 .85rem var(--body);padding:6px 12px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
 .fine{color:var(--muted);font-size:.84rem;width:100%}
+.leaflet-popup-content .rule{background:#fff4d6;border:1.5px solid #f0b429;border-radius:6px;padding:6px 8px;margin:6px 0;color:#1e1a17;font-weight:700}
 .leaflet-popup-content .fine{color:#5d554d;font-size:12px;width:auto}
 .choose{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
 .choose button{font:600 13px "Bitter",Georgia,serif;padding:7px 10px;border-radius:7px;border:1.5px solid #1e1a17;background:#1e1a17;color:#fff;cursor:pointer}
@@ -199,6 +200,9 @@ const KIND = {
   merch: {label:"Kiwanis merchandise booth", size:[10,10], bg:"#2b8a3e", fg:"#ffffff", ring:"#ffffff", meta:"Reserved"},
   beer:  {label:"Beer garden truck or trailer", size:[22,8.5], bg:"#f59f00", fg:"#1e1a17", ring:"#ffffff", meta:"Reserved"},
   stage: {label:"Stage", size:[16,10], bg:"#1d3f7a", fg:"#ffffff", ring:"#ffd43b", meta:"New Year's Eve stage"},
+  plaza: {label:"City Plaza vendor space", size:[10,10], bg:"#9c36b5", fg:"#ffffff", ring:"#ffd43b", meta:"City of Santa Fe Plaza vendors only",
+          rule:"Only for vendors who already hold a City of Santa Fe Plaza vendor permit.",
+          ruleEs:"Solo para vendedores que ya tienen un permiso de vendedor de la Plaza de la Ciudad de Santa Fe."},
   city:  {label:"City-permitted vendor", size:[10,10], bg:"#5c636a", fg:"#ffffff", ring:"#dee2e6", meta:"Not available through Kiwanis"}
 };
 function sizeText(k){ const z=KIND[k].size; return z[0]+" ft × "+z[1]+" ft"; }
@@ -209,14 +213,16 @@ const PLAZA_SPACES = [
   sp("T1","truck","Food trucks · Lincoln Ave & W Palace Ave",[35.68797,-105.93880],"Food truck space 1",19),
   sp("T2","truck","Food trucks · Lincoln Ave & W Palace Ave",[35.687918,-105.939102],"Food truck space 2",108),
   sp("T3","truck","Food trucks · Lincoln Ave & W Palace Ave",[35.687983,-105.939343],"Food truck space 3",108),
-  sp("P1","booth","Plaza booth spaces",[35.687649,-105.938837],"Booth space P1",13),
-  sp("P2","booth","Plaza booth spaces",[35.687507,-105.938147],"Booth space P2",13),
-  sp("P3","booth","Plaza booth spaces",[35.68733,-105.938216],"Booth space P3",13),
-  sp("P4","booth","Plaza booth spaces",[35.687305,-105.938944],"Booth space P4",13),
-  sp("P5","booth","Plaza booth spaces",[35.687222,-105.938639],"Booth space P5",13),
-  sp("P6","booth","Plaza booth spaces",[35.68717,-105.938318],"Booth space P6",13),
+  sp("P1","plaza","Plaza booth spaces · City of Santa Fe Plaza vendors only",[35.687649,-105.938837],"Booth space P1",13),
+  sp("P2","plaza","Plaza booth spaces · City of Santa Fe Plaza vendors only",[35.687507,-105.938147],"Booth space P2",13),
+  sp("P3","plaza","Plaza booth spaces · City of Santa Fe Plaza vendors only",[35.68733,-105.938216],"Booth space P3",13),
+  sp("P4","plaza","Plaza booth spaces · City of Santa Fe Plaza vendors only",[35.687305,-105.938944],"Booth space P4",13),
+  sp("P5","plaza","Plaza booth spaces · City of Santa Fe Plaza vendors only",[35.687222,-105.938639],"Booth space P5",13),
+  sp("P6","plaza","Plaza booth spaces · City of Santa Fe Plaza vendors only",[35.68717,-105.938318],"Booth space P6",13),
   ...[[35.687779,-105.938628],[35.687748,-105.938513],[35.687716,-105.938398],[35.687684,-105.938282],[35.687652,-105.938167],[35.687621,-105.938052]]
-     .map((ll,i)=>sp("C"+(i+1),"city","City-permitted vendors · Palace Ave",ll,"City-permitted vendor "+(i+1),18.6))
+     .map((ll,i)=>sp("C"+(i+1),"city","City-permitted vendors · Palace Ave",ll,"City-permitted vendor "+(i+1),18.6)),
+  sp("I1","info","Information booths · nonprofits and agencies",[35.687604,-105.938626],"Information booth I1",13),
+  sp("I2","info","Information booths · nonprofits and agencies",[35.68742,-105.938176],"Information booth I2",13)
 ];
 const PLAZA_SCREENS = [{t:"Screen", ll:[35.687674,-105.93897]},{t:"Screen", ll:[35.687492,-105.938065]}];
 
@@ -251,7 +257,7 @@ const EVENTS = {
       ["clock","Food truck sales 4–8 p.m. both nights"],
       ["truck","Load-in and inspections Friday, 3–5 p.m."]
     ],
-    banner:AVAIL+" Available: three food truck spaces and six plaza booth spaces. The gray spaces on Palace Avenue are City-permitted vendors and are not available through Kiwanis. Merchandise is sold only through the Kiwanis merchandise booth, on consignment.",
+    banner:AVAIL+" Available: three food truck spaces, two information booths for nonprofits and agencies, and six plaza booth spaces. <strong>Plaza booth spaces P1–P6 are only for vendors who already hold a City of Santa Fe Plaza vendor permit.</strong> The gray spaces on Palace Avenue are City-permitted vendors and are not available through Kiwanis. Merchandise is sold only through the Kiwanis merchandise booth, on consignment.",
     spaces: PLAZA_SPACES,
     landmarks: [{t:"Bandstand", ll:[35.68761,-105.93845]}, ...PLAZA_SCREENS]
   },
@@ -260,7 +266,7 @@ const EVENTS = {
     venue:"Santa Fe Plaza",
     center:[35.68755,-105.93860], zoom:20,
     facts:[["cal","Thursday, December 31, 2026"]],
-    banner:AVAIL+" Available: three food truck spaces and six plaza booth spaces. The gray spaces on Palace Avenue are City-permitted vendors and are not available through Kiwanis.",
+    banner:AVAIL+" Available: three food truck spaces, two information booths for nonprofits and agencies, and six plaza booth spaces. <strong>Plaza booth spaces P1–P6 are only for vendors who already hold a City of Santa Fe Plaza vendor permit.</strong> The gray spaces on Palace Avenue are City-permitted vendors and are not available through Kiwanis.",
     spaces: [...PLAZA_SPACES, sp("S2","stage","Plaza, southeast corner",[35.687222,-105.938362],"New Year's Eve stage 2",55)],
     landmarks: [{t:"Bandstand", ll:[35.68761,-105.93845]}]
   },
@@ -360,7 +366,7 @@ const T = ES ? {first:"Primera opción", alt:"Alterno", firstLbl:"Tu primera opc
   help:"Tap an open space to choose it. Requests are not guaranteed; Kiwanis assigns every space, and the Fire Marshal's direction comes first."};
 /* Published CSV of the "Map feed" tab in the Kiwanis Vendor Applications sheet (event, space, business). */
 const FEED_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vROV1sznn_jTJVGvy0qY804-YHeltgDj7huKtXsKiVXsV964K8-uH5PNt9QOb-8zcGNY5UZsB6THL4T/pub?gid=106&single=true&output=csv";
-const ASSIGNABLE = new Set(["truck","booth","info"]);
+const ASSIGNABLE = new Set(["truck","booth","info","plaza"]);
 let assigned = {};               // assigned[event][SPACE] = business name
 const choice = {first:"", alternate:""};
 function who(ev, s){ return (assigned[ev]||{})[s.id.toUpperCase()] || ""; }
@@ -459,7 +465,7 @@ function footprint(ll, size, bearing){
 /* Fire code checks, from the City's Special Events / Food Booth Requirements and SFFD (Jason Tapia, Oct 2023):
    cooking spaces need 20 ft clear on at least two sides; 3 ft aisles between spaces;
    side-by-side tents no more than 700 sq ft without a 12 ft break. */
-const COOKING = new Set(["truck","booth"]);
+const COOKING = new Set(["truck","booth","plaza"]);
 const TENTS = new Set(["info","merch"]);
 const FT = 0.3048;
 function toLocal(pts, o){ const mLng=111320*Math.cos(o[0]*Math.PI/180); return pts.map(p=>[(p[1]-o[1])*mLng,(p[0]-o[0])*111320]); }
@@ -534,6 +540,7 @@ function render(ev, keepView){
     const fp = L.polygon(footprint(llOf(ev,s), k.size, s.rot), {color: picked ? "#ffd43b" : (k.bg==="#ffffff"?k.ring:"#ffffff"), weight: picked ? 4 : 2,
       fillColor: taken ? "#5c636a" : (k.bg==="#ffffff"?k.ring:k.bg), fillOpacity: taken ? .85 : .75}).addTo(layer);
     let pop = `<div class="pk">${esc(k.label)}</div><h3>${esc(s.n)}</h3><p>${esc(s.area)}</p><p>Size: ${esc(sizeText(s.k))}</p><p><strong>${esc(status(ev,s))}</strong></p>`;
+    if(k.rule) pop += `<p class="rule">⚠️ ${esc(ES && k.ruleEs ? k.ruleEs : k.rule)}</p>`;
     if(picked) pop += `<p>Your ${picked.toLowerCase()}</p>`;
     if(PICK && ASSIGNABLE.has(s.k) && !taken) pop += `<div class="choose"><button type="button" data-choose="first" data-id="${esc(s.id)}">${T.first}</button><button type="button" data-choose="alternate" data-id="${esc(s.id)}">${T.alt}</button></div><p class="fine">${T.note}</p>`;
     fp.bindPopup(pop);
