@@ -391,10 +391,10 @@ const PICK = /[?&]pick\b/.test(location.search);
 const ES = /[?&]lang=es\b/.test(location.search);
 const T = ES ? {first:"Primera opción", alt:"Alterno", firstLbl:"Tu primera opción:", altLbl:"Alterno:", none:"sin elegir", clear:"Borrar", note:"No garantizado.",
   help:"Toca un espacio libre para elegirlo. Las solicitudes no están garantizadas; Kiwanis asigna todos los espacios y las indicaciones del Jefe de Bomberos tienen prioridad.",
-  faded:" Los espacios atenuados no corresponden a tu tipo de vendedor.", nofit:"Este espacio no corresponde al tipo de vendedor que elegiste en la solicitud."}
+  faded:" Los espacios atenuados no corresponden a tu tipo de vendedor.", full:"⚠️ Todos los espacios para tu tipo de vendedor en este evento ya están asignados. Puedes enviar tu solicitud de todos modos y te pondremos en la lista de espera por si se libera un espacio.", nofit:"Este espacio no corresponde al tipo de vendedor que elegiste en la solicitud."}
  : {first:"Make first choice", alt:"Make alternate", firstLbl:"Your first choice:", altLbl:"Alternate:", none:"not chosen", clear:"Clear", note:"Requests are not guaranteed.",
   help:"Tap an open space to choose it. Requests are not guaranteed; Kiwanis assigns every space, and the Fire Marshal's direction comes first.",
-  faded:" Faded spaces don't fit your vendor type.", nofit:"This space isn't for the vendor type you chose on the application."};
+  faded:" Faded spaces don't fit your vendor type.", full:"⚠️ Every space for your vendor type at this event is already assigned. You can still apply, and we'll put you on the waitlist in case a space opens up.", nofit:"This space isn't for the vendor type you chose on the application."};
 /* Published CSV of the "Map feed" tab in the Kiwanis Vendor Applications sheet (event, space, business). */
 const FEED_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vROV1sznn_jTJVGvy0qY804-YHeltgDj7huKtXsKiVXsV964K8-uH5PNt9QOb-8zcGNY5UZsB6THL4T/pub?gid=106&single=true&output=csv";
 const ASSIGNABLE = new Set(["truck","booth","info","plaza"]);
@@ -431,7 +431,7 @@ async function loadFeed(){
       if(!ev||!space||!biz) return; ev=ev.trim().toLowerCase();
       (next[ev]=next[ev]||{})[space.trim().toUpperCase()] = biz.trim();
     });
-    assigned = next; render(current, true);
+    assigned = next; render(current, true); updatePickBar();
   }catch(err){ /* the map still works without assignments */ }
 }
 function sendChoice(){
@@ -450,6 +450,11 @@ function updatePickBar(){
   document.getElementById("pickAlt").textContent = choice.alternate || T.none;
   document.getElementById("pickFirstLbl").textContent = T.firstLbl; document.getElementById("pickAltLbl").textContent = T.altLbl;
   document.getElementById("pickClear").textContent = T.clear; document.getElementById("pickHelp").textContent = T.help + (allow ? T.faded : "");
+  let full = document.getElementById("pickFull");
+  if(!full){ full = document.createElement("p"); full.id = "pickFull"; full.style.cssText = "margin:8px 0 0;padding:10px 12px;border-radius:10px;background:#fff4d6;color:#3b2a10;font-weight:700;border:2px solid #f08c00"; bar.appendChild(full); }
+  const open = ((EVENTS[current]||{}).spaces||[]).filter(s=>ASSIGNABLE.has(s.k) && fits(s) && !who(current,s)).length;
+  full.textContent = T.full;
+  full.hidden = !(PICK && document.body.classList.contains("formled") && open===0);
 }
 const EVNAME = ES ? {dia:"Día de los Muertos", nye:"Año Nuevo en la Plaza", july4:"4 de julio", zozobra:"Zozobra"}
                   : {dia:"Día de los Muertos", nye:"New Year's Eve on the Plaza", july4:"Fourth of July", zozobra:"Zozobra"};
