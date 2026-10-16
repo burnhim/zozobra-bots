@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ask the Licensing Desk · Kiwanis Club of Santa Fe</title>
+<link href="https://fonts.googleapis.com/css2?family=Rye&family=Bitter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#FBF6EC;--ink:#1E1A16;--red:#E8192B;--deep:#9E1420;--brown:#4A2412;--line:#E2D6C2;--orange:#E87722;--sand:#F3E7D0;}
+*{box-sizing:border-box;}
+html,body{height:100%;margin:0;}
+body{font-family:'Bitter',Georgia,serif;color:var(--ink);background:#FFFFFF;display:flex;flex-direction:column;}
+#bg{position:fixed;inset:0;background:#FFFFFF url('https://burnhim.github.io/zozobra-bots/img/license-bg.jpg') center 58% / min(86vw,520px) no-repeat;opacity:.30;pointer-events:none;}
+#bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px 0;position:relative;z-index:2;flex:0 0 auto;}
+#bar .t{display:flex;align-items:center;gap:10px;}
+#bar .t img{width:46px;height:46px;object-fit:contain;background:#fff;border-radius:50%;border:2px solid var(--red);padding:4px;}
+#bar h1{font-family:'Rye',Georgia,serif;font-weight:400;font-size:24px;margin:0;color:var(--brown);}
+#bar .r{display:flex;align-items:center;gap:10px;}
+#bar button{background:var(--red);color:#fff;-webkit-text-fill-color:#fff;border:0;border-radius:18px;padding:8px 16px;font-weight:700;font-size:19px;cursor:pointer;font-family:inherit;}
+#bar button:hover{background:var(--deep);}
+#chat{flex:1 1 auto;overflow-y:auto;padding:16px;position:relative;z-index:1;}
+.msg{max-width:90%;padding:13px 16px;border-radius:16px;margin-bottom:12px;line-height:1.5;font-size:19px;white-space:pre-line;}
+.bot{background:#fff;border:2px solid var(--line);border-top-left-radius:4px;color:var(--ink);}
+.me{background:var(--red);color:#fff;margin-left:auto;border-top-right-radius:4px;}
+.note{font-size:19px;color:var(--deep);font-style:italic;}
+#chips{padding:2px 16px 10px;display:flex;flex-wrap:nowrap;gap:8px;position:relative;z-index:1;flex:0 0 auto;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+#chips button{flex:0 0 auto;white-space:nowrap;}
+#chips button{background:#fff;border:2px solid var(--red);color:var(--deep);border-radius:22px;padding:7px 14px;font-size:19px;font-weight:700;cursor:pointer;font-family:inherit;}
+#chips button:hover{background:var(--red);color:#fff;}
+form{display:flex;gap:8px;padding:12px 16px;background:var(--brown);flex:0 0 auto;position:relative;z-index:1;}
+input{flex:1;min-width:0;border:0;border-radius:24px;padding:12px 16px;font-size:19px;font-family:inherit;color:var(--ink);background:#fff;}
+form button{background:var(--orange);color:#fff;border:0;border-radius:24px;padding:12px 20px;font-weight:700;cursor:pointer;font-size:19px;font-family:inherit;}
+form button:hover{background:var(--red);}
+footer{background:var(--brown);color:#fff;-webkit-text-fill-color:#fff;text-align:center;font-size:19px;padding:0 16px 12px;position:relative;z-index:1;flex:0 0 auto;}
+footer a{color:#FFD7A8;-webkit-text-fill-color:#FFD7A8;}
+.bot a{color:var(--deep);-webkit-text-fill-color:var(--deep);font-weight:700;text-decoration:underline;word-break:break-word;}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<div id="bar">
+<span class="t"><img src="https://burnhim.github.io/zozobra-bots/img/license-shirt.png" alt=""><h1 id="hdr">Ask the Licensing Desk</h1></span>
+<span class="r"><button id="lang" type="button">Español</button></span>
+</div>
+<div id="chat"></div>
+<div id="chips"></div>
+<form id="f" autocomplete="off">
+<input id="q" placeholder="Ask about selling Zozobra merchandise…">
+<button type="submit" id="send">Send</button>
+</form>
+<footer id="foot"></footer>
+
+<script>
+var APPLY = "[Zozobra license application](https://burnzozobra.com/license/)";
+var APPLY_ES = "[solicitud de licencia de Zozobra](https://burnzozobra.com/license/)";
+var PAY = "[license fee payment page](https://burnzozobra.com/license-fee/)";
+var PAY_ES = "[página de pago de licencias](https://burnzozobra.com/license-fee/)";
+var REPORT = "[Report a Violator](https://burnzozobra.com/report-a-violation/)";
+var REPORT_ES = "[Reportar a un infractor](https://burnzozobra.com/report-a-violation/)";
+var STORE = "[Official Z Merch store](https://www.ticketsignup.io/TicketEvent/Zozobra/Store)";
+var STORE_ES = "[tienda oficial de Z Merch](https://www.ticketsignup.io/TicketEvent/Zozobra/Store)";
+var VENDORS = "[vendors page](https://burnzozobra.com/vendors/)";
+var VENDORS_ES = "[página de vendedores](https://burnzozobra.com/vendors-es/)";
+var COPYRIGHT = "[U.S. Copyright Office](https://www.copyright.gov/registration/)";
+var USPTO = "[U.S. Patent and Trademark Office](https://www.uspto.gov/trademarks/basics)";
+var EMAIL = "burnhim@burnzozobra.com";
+var NOTICE = "Sold under license from the Kiwanis Club of Santa Fe. Zozobra™®, Will Shuster’s Zozobra™®, and the Zozobra image(s)™ Old Man Gloom™® are Registered Trademarks of The Kiwanis Club of Santa Fe, NM. All Rights Reserved. burnzozobra.com";
+
+var EN = {
+  hdr:"Ask the Licensing Desk", lang:"Español", ph:"Ask about selling Zozobra merchandise…", send:"Send",
+  foot:'Kiwanis Club of Santa Fe · Zozobra Licensing · v1 · <a href="mailto:burnhim@burnzozobra.com">burnhim@burnzozobra.com</a>',
+  hello:"Hi! I answer questions about making and selling Zozobra merchandise: who needs a license, how to apply, fees and commission, the design rules, the trademark notice, and general information about copyright and trademarks.\n\nPuedes preguntarme en español también: toca el botón de arriba.",
+  chips:["Do I need a license?","How do I apply?","Fees & commission","Fee waiver","The design rules","Trademark notice","How long is a license?","What happens after I apply?","Copyright vs. trademark","™ and ®","Can I copyright my design?","Selling at ZozoFest or the burn","Selling without a license","Report a violator"],
+  note:"General information only, not legal advice.",
+  fallback:"I'm not sure about that one. Try asking about who needs a license, how to apply, fees, the commission, a fee waiver, the design rules, the trademark notice, renewals, sales reports, AI art, copyright or trademarks. You can also apply right away through the " + APPLY + ", or email " + EMAIL + ".",
+  kb:[
+   {k:["need a license","do i need","put zozobra","on a mug","mug","t-shirt","shirt","sticker","earring","jewelry","ornament","license required","who needs","have to get a license","permission","allowed to sell","can i sell","sell zozobra","make zozobra","use zozobra","use the name","use the image","legal to sell"],
+    a:"Anyone who sells anything with the Zozobra name or image needs a license from the Kiwanis Club of Santa Fe, which owns Zozobra. That covers T-shirts, stickers, jewelry, prints, books, ornaments, food packaging, anything you sell, in a shop, at a market or online.\n\nThe names Zozobra, Will Shuster's Zozobra and Old Man Gloom, and the Zozobra image, are registered trademarks of the Kiwanis Club.\n\nApply through the " + APPLY + ". Part of every licensed sale supports the youth programs and scholarships Zozobra funds.\n\nFree uses by nonprofits, schools and public agencies don't go through the application. Email " + EMAIL + " instead."},
+   {k:["apply","application","how do i","sign up","get a license","get licensed","start","become a licensee","form"],
+    a:"Apply online through the " + APPLY + ". It takes about 15 minutes:\n\n1. Tell us if you're new, renewing or adding designs.\n2. Your name, business and contact information.\n3. What you'd like to make: products, quantities, retail price and where you'll sell.\n4. Upload images or mockups of every product and design.\n5. Choose how you pay: the application fee, or ask us to waive it.\n6. Certify you follow city, state and federal permit, license and tax rules.\n7. Read and agree to the design rules.\n8. Agree to put the trademark notice on everything.\n9. Type your name and sign.\n\nYou'll get an email confirmation with your application number."},
+   {k:["fee","fees","cost","how much","price of a license","commission","percent","%","royalt","net profit","pay"],
+    a:"You choose how you pay:\n\n• Pay the one-time application fee: a sliding scale by the size of your run, starting at $100. Your commission is 25% of net profit.\n• Ask us to waive the fee: your commission is 35% of net profit. The Art Committee decides on waivers.\n\nNet profit means your sales of licensed products, less your direct cost of making them (materials, printing, shipping to you), sales tax collected and refunds. Overhead like rent and salaries isn't deducted.\n\nFees and commissions are paid by credit card on the " + PAY + "."},
+   {k:["waive","waiver","can't afford","cant afford","no fee","free license","skip the fee"],
+    a:"Yes, you can ask us to waive the application fee on the application. With a waiver your commission is 35% of net profit instead of 25%. Tell us why you're asking (optional), and the Art Committee decides along with your designs."},
+   {k:["sales report","annual report","report my sales","when is commission due","due date","september 15","audit"],
+    a:"Each year, by September 15, licensees send a sales report (units sold by product, gross sales, direct costs and net profit) and pay the commission. We email you a reminder in August with the link. The Kiwanis Club may audit sales records. Pay by credit card on the " + PAY + "."},
+   {k:["rule","rules","allowed","not allowed","can't","cannot","restriction","guideline","denied","declined","reject"],
+    a:"The Art Committee reviews every design to protect Zozobra. Applications that break these rules are declined:\n\n• No religious or political portrayal, and nothing that puts Zozobra in a bad light.\n• Original, hand-made artwork only. AI-generated designs are not eligible.\n• Never call your product \"official\" or suggest the Kiwanis Club made or endorses it.\n• Don't combine Zozobra with another organization's name or marks (for example, Fiestas de Santa Fe).\n• Zozobra is never shown as female.\n• Nothing that shows how to build, mount or burn a Zozobra.\n• Sell only approved designs. New products or designs come back to us for approval first.\n• No vending inside the performance area or within 50 yards of the Fort Marcy Park or Magers Field entrances on burn night."},
+   {k:["theme","zozobra the kid","cowboy","western","this year","classic zozobra","old design"],
+    a:"Your design doesn't have to follow this year's theme. A classic Zozobra is welcome. Just follow the design rules, and keep it original, hand-made artwork."},
+   {k:[" ai ","a.i.","artificial intelligence","midjourney","chatgpt","dall","generated","generator","stable diffusion"],
+    a:"AI-generated designs are not eligible, in whole or in part. Every design must be original, human-made artwork that you created or have the rights to use.\n\nGood to know: the U.S. Copyright Office generally won't register material generated by AI, so AI art is hard to protect anyway."},
+   {k:["the notice","trademark notice","notice","disclaimer","label","tag","sticker","trademark notice","what do i print","8 point"],
+    a:"Every licensed item must carry this notice in at least 8-point type, printed on the item or on a sticker:\n\n\"" + NOTICE + "\"\n\nIt also goes on every online listing or post and on display wherever you sell. We send you a notice kit with your approval."},
+   {k:["how long","term","expire","provisional","standard license","one year","two year","renew","renewal"],
+    a:"First-time licensees receive a one-year Provisional License. Returning licensees in good standing may receive a longer Standard License, up to two years.\n\nWe email you before your license expires. To renew, choose \"I've been licensed before\" on the " + APPLY + "."},
+   {k:["after i apply","what happens","next step","how long does it take","approval","approved","decision","review","committee","hear back"],
+    a:"Here's what happens:\n\n1. You get an email confirmation with your application number.\n2. The Art Committee of the Kiwanis Club of Santa Fe reviews your designs.\n3. We email you the decision. If changes are needed, we tell you what to revise.\n4. If you're approved, you pay the application fee (unless it's waived), sign your license agreement electronically, and get your trademark notice kit.\n\nPlease don't produce or sell any Zozobra merchandise until your license is approved and signed."},
+   {k:["new design","add a design","add product","more products","another design","change my design"],
+    a:"New products or designs need approval before you make or sell them. Apply through the " + APPLY + " and choose \"I'm licensed now and want to add products or designs.\" Have your license number handy (it looks like ZL-2027-004)."},
+   {k:["permit","business license","tax","gross receipts","crs","city license"],
+    a:"On the application you certify that you are, and will stay, in compliance with all city, state and federal permitting, business licensing and tax requirements. We don't collect copies; it's your responsibility to have what your business needs."},
+   {k:["zozofest","burn night","at the burn","booth","vend","market","fort marcy","art show"],
+    a:"A license lets you sell your approved Zozobra designs wherever you sell: your shop, your website, Etsy or markets.\n\nOn burn night, licensed items can't be sold inside the performance area or within 50 yards of the Fort Marcy Park or Magers Field entrances.\n\nWant a booth at one of our events? That's the vendor program: start on the " + VENDORS + ". Artists can also show and sell in the ZozoFest art show through the summer call for artists."},
+   {k:["official","official merch","sell my design to","kiwanis store","art contest","t-shirt contest","poster contest"],
+    a:"Licensed products can never be called \"official.\" Official Z Merch is made by the Kiwanis Club and sold at the " + STORE + ".\n\nWant your art on official merchandise? Enter the Zozobra art contest each January. Merchandise questions: merchandise@burnzozobra.com."},
+   {k:["buy","where can i buy","shop","store","merch"],
+    a:"Official Z Merch is at the " + STORE + ". Licensed artists also sell their own Zozobra designs; look for the trademark notice that starts \"Sold under license from the Kiwanis Club of Santa Fe.\""},
+   {k:["violat","bootleg","report","someone selling","unlicensed","knock","fake","counterfeit","stealing"],
+    a:"See Zozobra merchandise being sold without a license, at a market, in a shop or online? Let us know on the " + REPORT + " page. You can report anonymously and add photos or links. It protects Zozobra and the artists who do it the right way."},
+   {k:["already selling","been selling","got a letter","cease","notice from","case number","stop selling"],
+    a:"If you're already selling Zozobra items without a license, please stop selling them and apply through the " + APPLY + ". If you received a notice from us, your case number is in it; you can enter it on the application. We'd much rather have you as a licensed partner.\n\nThe Kiwanis Club has an obligation to protect the Zozobra trademark. If we can't reach an agreement with someone selling without a license, we follow up, and that can include legal action."},
+   {k:["without a license","what happens if","get caught","sue","sued","legal action","lawsuit","enforce","consequence","penalt"],
+    a:"We always start by inviting sellers into a license. The Kiwanis Club has an obligation to protect the Zozobra trademark, though: a mark that isn't defended can be lost. If someone keeps selling without a license and we can't reach an agreement, we follow up with a final notice, and that can include legal action.\n\nThe easy way to avoid all of it: apply through the " + APPLY + " before you make or sell anything."},
+   {k:["copyright vs","difference","trademark vs","copyright or trademark","what is a trademark","what is copyright","trademark mean","copyright mean"],
+    a:"General information, not legal advice:\n\n• A trademark protects a name, logo or image that tells buyers who a product comes from, like Zozobra. It lasts as long as the owner keeps using and renewing it.\n• A copyright protects an original creative work, like a drawing, photo, song or book. It exists the moment you create the work, and lasts for the author's life plus 70 years.\n\nZozobra's name and image are trademarks of the Kiwanis Club. Your original artwork is your copyright, but if it shows Zozobra, selling it still needs a Zozobra license."},
+   {k:["™","®","tm","registered","r in a circle","symbol"],
+    a:"General information, not legal advice:\n\n• ™ means someone claims a name or image as their trademark. Anyone can use it.\n• ® means the trademark is registered with the " + USPTO + ". Only registered marks may use it.\n\nZozobra is a federally registered trademark of the Kiwanis Club of Santa Fe (U.S. Reg. No. 4,908,122)."},
+   {k:["copyright my","register my","protect my","my own design","my art","my artwork","own the design","who owns"],
+    a:"General information, not legal advice:\n\nYou own the copyright in your original artwork from the moment you create it. Registering it with the " + COPYRIGHT + " is optional, but it gives you a public record and is generally needed before you can sue over a U.S. work.\n\nTwo things to keep in mind:\n• Your license lets you use Zozobra on your approved products. It doesn't give you any ownership of the Zozobra name or image.\n• You can't register or claim Zozobra, Old Man Gloom or a look-alike name or image as your own trademark, or use them in a business name, website address or social media handle."},
+   {k:["trademark my","register a trademark","my brand","my business name","my logo","uspto"],
+    a:"General information, not legal advice:\n\nYou can register your own business name or logo with the " + USPTO + ", as long as it doesn't include Zozobra, Old Man Gloom or anything confusingly similar. Those belong to the Kiwanis Club, and licensees agree not to register or claim them."},
+   {k:["public domain","100 years","1924","expired","too old","shuster died","everyone knows"],
+    a:"Zozobra isn't in the public domain. The Zozobra name and image are registered trademarks of the Kiwanis Club of Santa Fe, which has burned Zozobra every year since Will Shuster handed it to the Club. A trademark doesn't expire with age; it stays protected as long as it's used and renewed."},
+   {k:["fan art","for myself","personal","gift","not selling","post","social media","draw","painting","costume","halloween"],
+    a:"Drawing, painting or dressing up as Zozobra for yourself is fine. You need a license once you sell it, or use Zozobra to promote a business or product. If you're unsure, email " + EMAIL + "."},
+   {k:["parody","fair use","satire","free speech","first amendment"],
+    a:"General information, not legal advice:\n\nFair use and parody are narrow and depend on the facts, so only a lawyer can tell you whether they apply. Merchandise that uses the Zozobra name or image to sell a product needs a license, and the safest route is to apply through the " + APPLY + "."},
+   {k:["photo","picture","photograph","my photos","pictures i took"],
+    a:"Photos you take of Zozobra are your copyright, and you can share them. Putting Zozobra photos on products to sell (prints, shirts, calendars, mugs) needs a license, just like any other design."},
+   {k:["nonprofit","school","church","library","city","county","state","agency","charity","fundraiser","free use"],
+    a:"Free uses by nonprofits, schools and public agencies don't go through the license application. Email " + EMAIL + " and tell us what you'd like to do. We usually ask to see the image before it's final."},
+   {k:["why","where does the money go","what does it support","scholarship","youth"],
+    a:"The Kiwanis Club of Santa Fe owns Zozobra and protects it so it stays special for everyone. Part of every licensed sale supports the youth programs and scholarships Zozobra funds."},
+   {k:["contact","email","phone","talk to","person","question"],
+    a:"Email " + EMAIL + " with your name and what you'd like to make. To get started right away, use the " + APPLY + "."},
+   {k:["hello","hi ","hey","good morning","good afternoon"],
+    a:"Hi! Ask me anything about licensing Zozobra merchandise."},
+   {k:["thank","thanks"],
+    a:"You're welcome! We look forward to seeing your designs. ¡Viva el Viejo!"}
+  ]
+};
+
+var ES = {
+  hdr:"Pregunta sobre licencias", lang:"English", ph:"Pregunta sobre vender mercancía de Zozobra…", send:"Enviar",
+  foot:'Kiwanis Club of Santa Fe · Licencias de Zozobra · v1 · <a href="mailto:burnhim@burnzozobra.com">burnhim@burnzozobra.com</a>',
+  hello:"¡Hola! Respondo preguntas sobre hacer y vender mercancía de Zozobra: quién necesita licencia, cómo solicitarla, cuotas y comisión, las reglas de diseño, el aviso de marca registrada e información general sobre derechos de autor y marcas.",
+  chips:["¿Necesito licencia?","¿Cómo solicito?","Cuotas y comisión","Exención de cuota","Reglas de diseño","Aviso de marca","¿Cuánto dura?","¿Qué pasa después?","Derechos de autor vs. marca","™ y ®","¿Puedo registrar mi diseño?","Vender en ZozoFest o la quema","Vender sin licencia","Reportar a un infractor"],
+  note:"Información general, no es asesoría legal.",
+  fallback:"No estoy seguro de esa. Pregúntame quién necesita licencia, cómo solicitarla, las cuotas, la comisión, la exención, las reglas de diseño, el aviso de marca, renovaciones, reportes de ventas, arte con IA, derechos de autor o marcas. También puedes solicitar ya mismo en la " + APPLY_ES + " o escribir a " + EMAIL + ".",
+  kb:[
+   {k:["necesito licencia","necesito una licencia","quien necesita","permiso","puedo vender","vender zozobra","usar zozobra","usar el nombre","usar la imagen","es legal"],
+    a:"Toda persona que venda algo con el nombre o la imagen de Zozobra necesita una licencia del Kiwanis Club of Santa Fe, dueño de Zozobra. Incluye camisetas, calcomanías, joyería, grabados, libros, adornos, empaques, todo lo que vendas, en tienda, mercado o en línea.\n\nLos nombres Zozobra, Will Shuster's Zozobra y Old Man Gloom, y la imagen de Zozobra, son marcas registradas del Kiwanis Club.\n\nSolicítala en la " + APPLY_ES + " (formulario en inglés). Parte de cada venta con licencia apoya los programas juveniles y las becas que financia Zozobra.\n\nLos usos gratuitos de organizaciones sin fines de lucro, escuelas y agencias públicas no pasan por la solicitud. Escribe a " + EMAIL + "."},
+   {k:["solicit","aplicar","como obtengo","formulario","empezar","inscrib"],
+    a:"Solicita en línea en la " + APPLY_ES + ". Toma unos 15 minutos:\n\n1. Indica si eres nuevo, renuevas o agregas diseños.\n2. Tu nombre, negocio y datos de contacto.\n3. Lo que quieres hacer: productos, cantidades, precio y dónde venderás.\n4. Sube imágenes o maquetas de cada producto y diseño.\n5. Elige cómo pagar: la cuota de solicitud o pedir que se exente.\n6. Certifica que cumples los requisitos de permisos, licencias e impuestos.\n7. Lee y acepta las reglas de diseño.\n8. Acepta poner el aviso de marca en todo.\n9. Escribe tu nombre y firma.\n\nRecibirás un correo de confirmación con tu número de solicitud."},
+   {k:["cuota","costo","cuanto","comision","porcentaje","%","regalia","ganancia","pago","pagar"],
+    a:"Tú eliges cómo pagar:\n\n• Pagar la cuota única de solicitud: escala según el tamaño de tu producción, desde $100. Tu comisión es el 25% de la ganancia neta.\n• Pedir que se exente la cuota: tu comisión es el 35% de la ganancia neta. El Comité de Arte decide las exenciones.\n\nGanancia neta son tus ventas de productos con licencia, menos el costo directo de hacerlos (materiales, impresión, envío a ti), el impuesto cobrado y los reembolsos. No se descuentan gastos generales como renta o sueldos.\n\nLas cuotas y comisiones se pagan con tarjeta de crédito en la " + PAY_ES + "."},
+   {k:["exencion de cuota","exencion","exen","exonera","sin cuota","no puedo pagar","gratis"],
+    a:"Sí, puedes pedir en la solicitud que se exente la cuota. Con la exención tu comisión es el 35% de la ganancia neta en lugar del 25%. Puedes explicar por qué la pides (opcional) y el Comité de Arte decide junto con tus diseños."},
+   {k:["reporte de ventas","reporte anual","fecha","15 de septiembre","auditoria"],
+    a:"Cada año, a más tardar el 15 de septiembre, los licenciatarios envían un reporte de ventas (unidades por producto, ventas brutas, costos directos y ganancia neta) y pagan la comisión. Te enviamos un recordatorio en agosto con el enlace. El Kiwanis Club puede auditar los registros. Paga con tarjeta en la " + PAY_ES + "."},
+   {k:["regla","permitido","prohibido","no se puede","restriccion","rechaz","negad"],
+    a:"El Comité de Arte revisa cada diseño para proteger a Zozobra. Se rechazan las solicitudes que rompan estas reglas:\n\n• Nada religioso ni político, y nada que deje mal a Zozobra.\n• Solo arte original hecho a mano. No se aceptan diseños generados con IA.\n• Nunca llames a tu producto \"oficial\" ni sugieras que el Kiwanis Club lo hizo o lo respalda.\n• No combines a Zozobra con el nombre o las marcas de otra organización (por ejemplo, Fiestas de Santa Fe).\n• Zozobra nunca se muestra como mujer.\n• Nada que muestre cómo construir, montar o quemar un Zozobra.\n• Vende solo diseños aprobados. Los productos o diseños nuevos necesitan aprobación primero.\n• No se vende dentro del área del espectáculo ni a menos de 50 yardas de las entradas de Fort Marcy Park o Magers Field la noche de la quema."},
+   {k:["tema","vaquero","western","este ano","zozobra clasico"],
+    a:"Tu diseño no tiene que seguir el tema de este año. Un Zozobra clásico es bienvenido. Solo sigue las reglas y que sea arte original hecho a mano."},
+   {k:[" ia ","inteligencia artificial","generado","midjourney","chatgpt"],
+    a:"No se aceptan diseños generados con IA, ni total ni parcialmente. Cada diseño debe ser arte original hecho por una persona, creado por ti o con derechos para usarlo.\n\nDato útil: la Oficina de Derechos de Autor de EE. UU. generalmente no registra material generado por IA."},
+   {k:["aviso","leyenda","etiqueta","calcomania","que imprimo"],
+    a:"Cada artículo con licencia debe llevar este aviso en letra de al menos 8 puntos, impreso en el artículo o en una calcomanía:\n\n\"" + NOTICE + "\"\n\nTambién va en cada anuncio o publicación en línea y a la vista donde vendas. Te enviamos un kit con el aviso al aprobarte."},
+   {k:["cuanto dura","vence","provisional","estandar","un ano","dos anos","renov"],
+    a:"Los licenciatarios nuevos reciben una Licencia Provisional de un año. Los que regresan en buen estado pueden recibir una Licencia Estándar de hasta dos años.\n\nTe escribimos antes de que venza. Para renovar, elige \"I've been licensed before\" en la " + APPLY_ES + "."},
+   {k:["despues","que pasa","siguiente paso","cuanto tarda","aprobacion","aprobad","decision","revision","comite"],
+    a:"Así sigue el proceso:\n\n1. Recibes un correo con tu número de solicitud.\n2. El Comité de Arte del Kiwanis Club of Santa Fe revisa tus diseños.\n3. Te enviamos la decisión por correo. Si hacen falta cambios, te decimos qué revisar.\n4. Si te aprueban, pagas la cuota (salvo exención), firmas tu contrato de licencia electrónicamente y recibes tu kit con el aviso.\n\nPor favor no produzcas ni vendas mercancía de Zozobra hasta que tu licencia esté aprobada y firmada."},
+   {k:["nuevo diseno","agregar","mas productos","otro diseno","cambiar mi diseno"],
+    a:"Los productos o diseños nuevos necesitan aprobación antes de hacerlos o venderlos. Solicita en la " + APPLY_ES + " y elige \"I'm licensed now and want to add products or designs.\" Ten a la mano tu número de licencia (se ve así: ZL-2027-004)."},
+   {k:["permiso de negocio","licencia comercial","impuesto","crs","ciudad"],
+    a:"En la solicitud certificas que cumples, y seguirás cumpliendo, todos los requisitos de permisos, licencias comerciales e impuestos de la ciudad, el estado y el gobierno federal. No pedimos copias; es tu responsabilidad tener lo que tu negocio necesita."},
+   {k:["zozofest","noche de la quema","puesto","vender en el evento","mercado","fort marcy","exhibicion"],
+    a:"Una licencia te permite vender tus diseños aprobados donde vendas: tu tienda, tu sitio web, Etsy o mercados.\n\nLa noche de la quema no se venden artículos con licencia dentro del área del espectáculo ni a menos de 50 yardas de las entradas de Fort Marcy Park o Magers Field.\n\n¿Quieres un puesto en uno de nuestros eventos? Eso es el programa de vendedores: empieza en la " + VENDORS_ES + ". Los artistas también pueden exhibir y vender en la muestra de arte de ZozoFest por medio de la convocatoria de verano."},
+   {k:["oficial","concurso","concurso de arte","camiseta oficial"],
+    a:"Los productos con licencia nunca pueden llamarse \"oficiales\". La mercancía oficial la hace el Kiwanis Club y se vende en la " + STORE_ES + ".\n\n¿Quieres tu arte en la mercancía oficial? Participa en el concurso de arte de Zozobra cada enero. Preguntas de mercancía: merchandise@burnzozobra.com."},
+   {k:["comprar","donde compro","tienda"],
+    a:"La mercancía oficial está en la " + STORE_ES + ". Los artistas con licencia también venden sus propios diseños de Zozobra; busca el aviso que empieza \"Sold under license from the Kiwanis Club of Santa Fe.\""},
+   {k:["infract","pirata","reportar","alguien vende","sin licencia","falsific","copia"],
+    a:"¿Ves mercancía de Zozobra vendida sin licencia, en un mercado, una tienda o en línea? Avísanos en " + REPORT_ES + ". Puedes reportar de forma anónima y agregar fotos o enlaces. Así protegemos a Zozobra y a los artistas que lo hacen bien."},
+   {k:["ya vendo","he vendido","recibi una carta","aviso de ustedes","numero de caso","dejar de vender"],
+    a:"Si ya vendes artículos de Zozobra sin licencia, por favor deja de venderlos y solicita en la " + APPLY_ES + ". Si recibiste un aviso nuestro, ahí está tu número de caso; puedes ponerlo en la solicitud. Preferimos mucho tenerte como socio con licencia.\n\nEl Kiwanis Club tiene la obligación de proteger la marca Zozobra. Si no llegamos a un acuerdo con quien vende sin licencia, damos seguimiento, y eso puede incluir acciones legales."},
+   {k:["vender sin licencia","vendo sin licencia","sin licencia que pasa","que pasa si","demanda","demandar","accion legal","acciones legales","consecuencia","multa","castigo"],
+    a:"Siempre empezamos invitando a los vendedores a obtener una licencia. Pero el Kiwanis Club tiene la obligación de proteger la marca Zozobra: una marca que no se defiende se puede perder. Si alguien sigue vendiendo sin licencia y no llegamos a un acuerdo, enviamos un aviso final, y eso puede incluir acciones legales.\n\nLa forma fácil de evitarlo: solicita en la " + APPLY_ES + " antes de hacer o vender cualquier cosa."},
+   {k:["diferencia","derechos de autor vs","que es una marca","que son los derechos","copyright"],
+    a:"Información general, no es asesoría legal:\n\n• Una marca registrada protege un nombre, logo o imagen que dice de quién viene un producto, como Zozobra. Dura mientras el dueño la use y la renueve.\n• Los derechos de autor protegen una obra creativa original, como un dibujo, foto, canción o libro. Existen desde que creas la obra y duran toda la vida del autor más 70 años.\n\nEl nombre y la imagen de Zozobra son marcas del Kiwanis Club. Tu arte original es tuyo, pero si muestra a Zozobra, venderlo requiere licencia."},
+   {k:["™","®","simbolo","registrada","tm"],
+    a:"Información general, no es asesoría legal:\n\n• ™ significa que alguien reclama un nombre o imagen como su marca. Cualquiera puede usarlo.\n• ® significa que la marca está registrada ante la " + USPTO + ". Solo las marcas registradas pueden usarlo.\n\nZozobra es una marca registrada federal del Kiwanis Club of Santa Fe (Reg. de EE. UU. Núm. 4,908,122)."},
+   {k:["registrar mi","proteger mi","mi diseno","mi arte","mi obra","quien es dueno"],
+    a:"Información general, no es asesoría legal:\n\nEres dueño de los derechos de autor de tu arte original desde que lo creas. Registrarlo en la " + COPYRIGHT + " es opcional, pero deja un registro público y generalmente se necesita antes de demandar por una obra de EE. UU.\n\nTen en cuenta:\n• Tu licencia te permite usar a Zozobra en tus productos aprobados. No te da propiedad del nombre ni de la imagen de Zozobra.\n• No puedes registrar ni reclamar Zozobra, Old Man Gloom ni un nombre o imagen parecidos como marca tuya, ni usarlos en el nombre de tu negocio, dirección web o cuenta de redes sociales."},
+   {k:["mi marca","mi negocio","mi logo","registrar una marca","uspto"],
+    a:"Información general, no es asesoría legal:\n\nPuedes registrar el nombre o logo de tu negocio ante la " + USPTO + ", siempre que no incluya Zozobra, Old Man Gloom ni algo que se confunda con ellos. Esos pertenecen al Kiwanis Club, y los licenciatarios se comprometen a no registrarlos ni reclamarlos."},
+   {k:["dominio publico","100 anos","1924","ya vencio","muy viejo"],
+    a:"Zozobra no está en el dominio público. El nombre y la imagen de Zozobra son marcas registradas del Kiwanis Club of Santa Fe, que quema a Zozobra cada año desde que Will Shuster se lo entregó al Club. Una marca no vence por antigüedad; sigue protegida mientras se use y se renueve."},
+   {k:["para mi","personal","regalo","no vendo","redes sociales","dibujar","pintura","disfraz"],
+    a:"Dibujar, pintar o disfrazarte de Zozobra para ti está bien. Necesitas licencia cuando lo vendes o usas a Zozobra para promover un negocio o producto. Si tienes dudas, escribe a " + EMAIL + "."},
+   {k:["parodia","uso justo","satira","libertad de expresion"],
+    a:"Información general, no es asesoría legal:\n\nEl uso justo y la parodia son limitados y dependen de los hechos; solo un abogado puede decirte si aplican. La mercancía que usa el nombre o la imagen de Zozobra para vender un producto necesita licencia, y lo más seguro es solicitarla en la " + APPLY_ES + "."},
+   {k:["foto","fotografia","mis fotos"],
+    a:"Las fotos que tomas de Zozobra son tuyas y puedes compartirlas. Ponerlas en productos para vender (grabados, camisetas, calendarios, tazas) requiere licencia, como cualquier otro diseño."},
+   {k:["sin fines de lucro","escuela","iglesia","biblioteca","agencia","beneficencia","recaudacion"],
+    a:"Los usos gratuitos de organizaciones sin fines de lucro, escuelas y agencias públicas no pasan por la solicitud. Escribe a " + EMAIL + " y cuéntanos qué quieres hacer. Normalmente pedimos ver la imagen antes de que esté lista."},
+   {k:["por que","a donde va el dinero","beca","jovenes"],
+    a:"El Kiwanis Club of Santa Fe es dueño de Zozobra y lo protege para que siga siendo especial para todos. Parte de cada venta con licencia apoya los programas juveniles y las becas que financia Zozobra."},
+   {k:["contacto","correo","telefono","hablar con","persona","pregunta"],
+    a:"Escribe a " + EMAIL + " con tu nombre y lo que quieres hacer. Para empezar ya, usa la " + APPLY_ES + "."},
+   {k:["hola","buenas","buenos dias"],
+    a:"¡Hola! Pregúntame lo que quieras sobre licencias para mercancía de Zozobra."},
+   {k:["gracias"],
+    a:"¡De nada! Esperamos ver tus diseños. ¡Viva el Viejo!"}
+  ]
+};
+
+var L = (location.search.indexOf('lang=es') > -1) ? ES : EN;
+var chat = document.getElementById('chat');
+
+function norm(s){return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
+
+function answer(text){
+  var q = ' ' + norm(text) + ' ', best = null, score = 0;
+  for (var i=0;i<L.kb.length;i++){
+    var s = 0;
+    for (var j=0;j<L.kb[i].k.length;j++){
+      var key = norm(L.kb[i].k[j]);
+      var hit = key.trim().length <= 3 ? new RegExp('(^|[^a-z])' + key.trim().replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '([^a-z]|$)').test(q) : q.indexOf(key) > -1;
+      if (hit) s += key.trim().length;
+    }
+    if (s > score){ score = s; best = L.kb[i]; }
+  }
+  return best ? best.a : L.fallback;
+}
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function rich(s){
+  var h = esc(s);
+  h = h.replace(/\[([^\]]+)\]\((https:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  h = h.replace(/([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-z]{2,})/g, '<a href="mailto:$1">$1</a>');
+  return h;
+}
+
+function add(text, who){
+  var d = document.createElement('div');
+  d.className = 'msg ' + who;
+  if (who === 'bot') d.innerHTML = rich(text); else d.textContent = text;
+  chat.appendChild(d);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function chips(){
+  var box = document.getElementById('chips');
+  box.innerHTML = '';
+  L.chips.forEach(function(c){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = c;
+    b.onclick = function(){ ask(c); };
+    box.appendChild(b);
+  });
+}
+
+function ask(text){
+  add(text,'me');
+  setTimeout(function(){ add(answer(text),'bot'); }, 280);
+}
+
+function paint(){
+  document.getElementById('hdr').textContent = L.hdr;
+  document.getElementById('lang').textContent = L.lang;
+  document.getElementById('q').placeholder = L.ph;
+  document.getElementById('send').textContent = L.send;
+  document.getElementById('foot').innerHTML = L.foot;
+  document.documentElement.lang = (L === ES) ? 'es' : 'en';
+  chat.innerHTML = '';
+  add(L.hello,'bot');
+  chips();
+}
+
+document.getElementById('lang').onclick = function(){
+  L = (L === EN) ? ES : EN;
+  paint();
+};
+
+document.getElementById('f').onsubmit = function(e){
+  e.preventDefault();
+  var v = document.getElementById('q').value.trim();
+  if (!v) return;
+  document.getElementById('q').value = '';
+  ask(v);
+};
+
+paint();
+</script>
+</body>
+</html>
