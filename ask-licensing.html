@@ -39,7 +39,7 @@ footer a{color:#FFD7A8;-webkit-text-fill-color:#FFD7A8;}
 <body>
 <div id="bg"></div>
 <div id="bar">
-<span class="t"><img src="https://burnhim.github.io/zozobra-bots/img/license-shirt.png" alt=""><h1 id="hdr">Ask the Licensing Desk</h1></span>
+<span class="t"><img id="av" src="https://burnhim.github.io/zozobra-bots/img/license-shirt.png" alt=""><h1 id="hdr">Ask the Licensing Desk</h1></span>
 <span class="r"><button id="lang" type="button">Español</button></span>
 </div>
 <div id="chat"></div>
@@ -67,7 +67,7 @@ var EMAIL = "burnhim@burnzozobra.com";
 
 var EN = {
   hdr:"Ask the Licensing Desk", lang:"Español", ph:"Ask about selling Zozobra merchandise…", send:"Send",
-  foot:'Kiwanis Club of Santa Fe · Zozobra Licensing · v11 · <a href="mailto:burnhim@burnzozobra.com">burnhim@burnzozobra.com</a>',
+  foot:'Kiwanis Club of Santa Fe · Zozobra Licensing · v12 · <a href="mailto:burnhim@burnzozobra.com">burnhim@burnzozobra.com</a>',
   hello:"Hi! I answer questions about making and selling Zozobra merchandise: who needs a license, how to apply, fees and commission, the design rules, the trademark notice, and general information about copyright and trademarks.\n\nPuedes preguntarme en español también: toca el botón de arriba.",
   chips:["Do I need a license?","How do I apply?","Fees & commission","Fee waiver","The design rules","Trademark notice","How long is a license?","What happens after I apply?","Copyright vs. trademark","™ and ®","Can I copyright my design?","Seasonal blackout","Why a blackout?","Selling at ZozoFest or the burn","Selling without a license","Who's licensed?","Report a violator"],
   note:"General information only, not legal advice.",
@@ -150,7 +150,7 @@ var EN = {
 
 var ES = {
   hdr:"Pregunta sobre licencias", lang:"English", ph:"Pregunta sobre vender mercancía de Zozobra…", send:"Enviar",
-  foot:'Kiwanis Club of Santa Fe · Licencias de Zozobra · v11 · <a href="mailto:burnhim@burnzozobra.com">burnhim@burnzozobra.com</a>',
+  foot:'Kiwanis Club of Santa Fe · Licencias de Zozobra · v12 · <a href="mailto:burnhim@burnzozobra.com">burnhim@burnzozobra.com</a>',
   hello:"¡Hola! Respondo preguntas sobre hacer y vender mercancía de Zozobra: quién necesita licencia, cómo solicitarla, cuotas y comisión, las reglas de diseño, el aviso de marca registrada e información general sobre derechos de autor y marcas.",
   chips:["¿Necesito licencia?","¿Cómo solicito?","Cuotas y comisión","Exención de cuota","Reglas de diseño","Aviso de marca","¿Cuánto dura?","¿Qué pasa después?","Derechos de autor vs. marca","™ y ®","¿Puedo registrar mi diseño?","Temporada de exclusión","¿Por qué la exclusión?","Vender en ZozoFest o la quema","Vender sin licencia","¿Quién tiene licencia?","Reportar a un infractor"],
   note:"Información general, no es asesoría legal.",
@@ -231,6 +231,70 @@ var ES = {
   ]
 };
 
+// Violation Desk: the same bot, opened from the Report a Violation page with ?desk=report
+var DESK = /[?&]desk=report/.test(location.search);
+if (DESK) {
+  var R_EN = [
+   {k:["is this seller licensed","seller licensed","are they licensed","is this licensed","is it licensed","who is licensed","who's licensed","licensee list","list of licens"],
+    a:"Check the list of known Zozobra licensees on this page. It shows each licensed artist or business and what they're licensed to sell. If a seller is on the list and selling those items, there's no need to report them.\n\nIf they're not on the list, or they're selling something different from what's listed, go ahead and report it. We'll check."},
+   {k:["what counts","what is a violation","what's a violation","whats a violation","counts as","what can i report","what should i report","what do i report","is this a violation"],
+    a:"There are two kinds of violations you can report:\n\n• Zozobra items sold without a license: T-shirts, stickers, art, prints, jewelry, food or anything else with the Zozobra name or image, sold online, at a market or at a booth.\n• Inappropriate use of Zozobra: Zozobra shown in sexual, hateful, violent or degrading content, even if nothing is for sale.\n\nFan art you make for yourself and photos you take at the burn are fine. It becomes a problem when Zozobra is sold without a license or put in a bad light."},
+   {k:["how do i report","how to report","report it","file a report","make a report","report form","where do i report","send a report","submit"],
+    a:"Use the form on this page. In Step 1, choose what you saw: \"Zozobra items sold without a license\" or \"Inappropriate use of Zozobra.\" Each choice asks its own short set of questions.\n\nBefore you report a seller, check the list of known Zozobra licensees on this page. If they're on it, there's no need to report them."},
+   {k:["after i report","after i send","what happens next","what happens after","will you tell me","follow up","outcome","hear back","update me","let me know"],
+    a:"Every report is reviewed. When it's a real violation, we contact the seller or poster and ask them to get a license or take it down, and we report it to the website or app when needed.\n\nBecause these matters can involve legal action, we may not be able to tell you how a report turns out, but every report helps protect Zozobra."},
+   {k:["anonymous","my name","stay anonymous","will they know","know it was me","find out who","privacy","confidential","share my","identity"],
+    a:"Your name, email and phone are optional. We never tell the seller or poster who reported them. If you leave an email, we can reach you if we need more details."},
+   {k:["confront","message them","contact the seller","contact them","tell them","call them out","comment on","post about","expose","warn them","dm them"],
+    a:"Please don't contact the seller or poster yourself, and please don't call them out publicly. Send us the report and we'll handle it. That keeps you out of an argument and keeps the matter clean if it has to go further."},
+   {k:["screenshot","photos","evidence","proof","what should i include","what do you need","include","details"],
+    a:"For items sold without a license: links to the listing or shop, what's being sold, prices, and where you saw it (a booth number or market helps). Photos or screenshots of the items help too.\n\nFor inappropriate use: links only. Please don't download, screenshot or send us the images themselves. A link to the post or account is all we need."},
+   {k:["child","kid","minor","under 18","teen","year old","young","underage"],
+    a:"If someone under 18 may be involved, as the person shown or the person posting, check the box on the form so we know right away.\n\nPlease also report it to the [NCMEC CyberTipline](https://report.cybertip.org/) and to the website or app where you saw it. Don't contact the person, and don't save or share the images."},
+   {k:["i bought","bought one","bought a","refund","purchased","scammed","bought something"],
+    a:"We're sorry that happened. The Kiwanis Club can't refund purchases from other sellers, so please contact the seller or the website you bought from. Do report the seller here; your report helps stop it from happening to someone else.\n\nOfficial Zozobra merchandise is sold at the " + STORE + "."},
+   {k:["report to etsy","report to amazon","report it to","report on instagram","report to facebook","report to the platform","flag it","report button","report the listing"],
+    a:"For items sold without a license, please leave the takedown to us. Only the trademark owner can file a trademark report, so send us the link and we'll handle it.\n\nFor sexual, hateful or violent content, you can also use the website or app's own Report button, and please send us the link too."},
+   {k:["ai-generated merch","ai generated merch","ai merch","ai shirt","ai design","looks like ai","made with ai","ai generated","ai-generated","ai art"],
+    a:"Zozobra designs made with AI can't be licensed at all, so any AI-generated Zozobra merchandise for sale is a violation. Report it with the form on this page and include the links."},
+   {k:["burn night","at the burn","at the event","in the park","outside the gates","on the street","at zozofest"],
+    a:"If you see someone selling Zozobra items without a license at or near the burn or ZozoFest, report it here with where you saw it, the time, and a photo if you can. Please don't confront the seller."}
+  ];
+  var R_ES = [
+   {k:["tiene licencia","tienen licencia","esta autorizado","lista de licenciatarios","quien tiene licencia"],
+    a:"Revisa la lista de licenciatarios de Zozobra en esta página. Muestra a cada artista o negocio con licencia y lo que puede vender. Si el vendedor está en la lista y vende esos artículos, no hace falta reportarlo.\n\nSi no aparece, o vende algo distinto a lo que dice la lista, repórtalo y nosotros lo revisamos."},
+   {k:["que cuenta","que es una infraccion","que puedo reportar","que debo reportar","es una infraccion"],
+    a:"Hay dos tipos de infracciones que puedes reportar:\n\n• Artículos de Zozobra vendidos sin licencia: camisetas, calcomanías, arte, grabados, joyería, comida o cualquier cosa con el nombre o la imagen de Zozobra, en línea, en un mercado o en un puesto.\n• Uso inapropiado de Zozobra: Zozobra en contenido sexual, de odio, violento o denigrante, aunque no se venda nada.\n\nEl arte que haces para ti y las fotos que tomas en la quema están bien. El problema es vender a Zozobra sin licencia o ponerlo en mala luz."},
+   {k:["como reporto","como reportar","hacer un reporte","enviar un reporte","donde reporto","formulario"],
+    a:"Usa el formulario de esta página. En el Paso 1, elige lo que viste: \"Artículos de Zozobra vendidos sin licencia\" o \"Uso inapropiado de Zozobra.\" Cada opción tiene sus propias preguntas.\n\nAntes de reportar a un vendedor, revisa la lista de licenciatarios de Zozobra en esta página. Si aparece, no hace falta reportarlo."},
+   {k:["despues de reportar","que pasa despues","me avisan","me van a decir","resultado","seguimiento"],
+    a:"Revisamos cada reporte. Cuando es una infracción real, contactamos al vendedor o a quien lo publicó para pedirle que obtenga una licencia o lo retire, y lo reportamos al sitio o la aplicación cuando hace falta.\n\nComo estos asuntos pueden llevar a acciones legales, quizá no podamos decirte el resultado, pero cada reporte ayuda a proteger a Zozobra."},
+   {k:["anonimo","mi nombre","sabran","sabra que fui","privacidad","confidencial","identidad"],
+    a:"Tu nombre, correo y teléfono son opcionales. Nunca le decimos al vendedor ni a quien publicó quién lo reportó. Si dejas tu correo, podemos contactarte si necesitamos más detalles."},
+   {k:["confrontar","escribirle","contacto al vendedor","contactar al vendedor","contactarlo","decirle","exponer","comentar","advertirle"],
+    a:"Por favor no contactes tú al vendedor ni a quien lo publicó, y no lo señales en público. Envíanos el reporte y nosotros nos encargamos."},
+   {k:["captura","fotos","evidencia","prueba","que incluyo","que necesitan","detalles","enlace"],
+    a:"Para artículos vendidos sin licencia: enlaces al anuncio o la tienda, qué se vende, precios y dónde lo viste (el número de puesto ayuda). Fotos o capturas también ayudan.\n\nPara uso inapropiado: solo enlaces. Por favor no descargues, captures ni nos envíes las imágenes. El enlace a la publicación o la cuenta es suficiente."},
+   {k:["nino","nina","menor","menor de 18","adolescente","anos de edad","joven"],
+    a:"Si puede haber un menor de 18 involucrado, como la persona que aparece o la que publica, marca la casilla en el formulario para que lo sepamos de inmediato.\n\nTambién repórtalo a la [CyberTipline de NCMEC](https://report.cybertip.org/) y al sitio o la aplicación donde lo viste. No contactes a la persona y no guardes ni compartas las imágenes."},
+   {k:["compre","reembolso","me estafaron","compre algo","algo falso"],
+    a:"Lamentamos lo que pasó. El Kiwanis Club no puede reembolsar compras hechas a otros vendedores; comunícate con el vendedor o el sitio donde compraste. Sí reporta al vendedor aquí, para evitar que le pase a alguien más.\n\nLa mercancía oficial de Zozobra se vende en la " + STORE_ES + "."},
+   {k:["reportar a etsy","reportar a amazon","reportar en instagram","reportar en facebook","boton de reportar","reportar la publicacion"],
+    a:"Para artículos vendidos sin licencia, deja la denuncia en nuestras manos. Solo el dueño de la marca puede presentar una denuncia de marca; envíanos el enlace y nos encargamos.\n\nPara contenido sexual, de odio o violento, también puedes usar el botón de Reportar del sitio o la aplicación, y envíanos el enlace."},
+   {k:["mercancia hecha con ia","hecha con ia","mercancia con ia","camiseta con ia","hecho con ia","hecha con ia","generado con ia","parece ia"],
+    a:"Los diseños de Zozobra hechos con IA no pueden recibir licencia, así que cualquier mercancía de Zozobra generada con IA a la venta es una infracción. Repórtala con el formulario de esta página e incluye los enlaces."}
+  ];
+  EN.kb = R_EN.concat(EN.kb); ES.kb = R_ES.concat(ES.kb);
+  EN.hdr = "Ask the Violation Desk"; ES.hdr = "Pregunta sobre infracciones";
+  EN.ph = "Ask about reporting a violation…"; ES.ph = "Pregunta sobre reportar una infracción…";
+  EN.hello = "Hi! I answer questions about reporting Zozobra violations: merchandise sold without a license, and Zozobra shown in sexual, hateful, violent or degrading content. When you're ready, use the form on this page to send a report.\n\nPuedes preguntarme en español.";
+  ES.hello = "¡Hola! Respondo preguntas sobre cómo reportar infracciones de Zozobra: mercancía vendida sin licencia y Zozobra en contenido sexual, de odio, violento o denigrante. Cuando estés listo, usa el formulario de esta página para enviar tu reporte.";
+  EN.chips = ["What counts as a violation?","How do I report?","Is this seller licensed?","What should I include?","Will they know it was me?","Should I contact the seller?","What happens after I report?","A child may be involved","I bought something fake","AI-generated merch"];
+  ES.chips = ["¿Qué cuenta como infracción?","¿Cómo reporto?","¿Tiene licencia?","¿Qué incluyo?","¿Sabrán que fui yo?","¿Contacto al vendedor?","¿Qué pasa después de reportar?","Puede haber un menor","Compré algo falso","Mercancía hecha con IA"];
+  EN.foot = EN.foot.replace("Zozobra Licensing", "Zozobra Violation Desk"); ES.foot = ES.foot.replace("Licencias de Zozobra", "Infracciones de Zozobra");
+  document.getElementById('av').src = "https://burnhim.github.io/zozobra-bots/img/license-cop.png";
+  document.title = "Ask the Violation Desk · Kiwanis Club of Santa Fe";
+}
 var L = (location.search.indexOf('lang=es') > -1) ? ES : EN;
 var chat = document.getElementById('chat');
 
