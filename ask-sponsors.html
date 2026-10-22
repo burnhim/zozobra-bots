@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ask the Sponsor Desk · Kiwanis Club of Santa Fe</title>
+<link href="https://fonts.googleapis.com/css2?family=Rye&family=Bitter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#FBF6EC;--ink:#1E1A16;--red:#E8192B;--deep:#9E1420;--brown:#4A2412;--line:#E2D6C2;--orange:#E87722;--gold:#E8A828;}
+*{box-sizing:border-box;}
+html,body{height:100%;margin:0;}
+body{font-family:'Bitter',Georgia,serif;color:var(--ink);background:#FFFFFF;display:flex;flex-direction:column;}
+#bg{position:fixed;inset:0;background:#FFFFFF url('https://burnhim.github.io/zozobra-bots/img/sponsor-bg.jpg') center 56% / min(84vw,430px) no-repeat;opacity:.22;pointer-events:none;}
+#bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px 0;position:relative;z-index:2;flex:0 0 auto;}
+#bar .t{display:flex;align-items:center;gap:10px;}
+#bar .t img{width:50px;height:50px;object-fit:contain;}
+#bar h1{font-family:'Rye',Georgia,serif;font-weight:400;font-size:24px;margin:0;color:var(--brown);}
+#bar .r{display:flex;align-items:center;gap:10px;}
+#bar button{background:var(--red);color:#fff;-webkit-text-fill-color:#fff;border:0;border-radius:18px;padding:8px 16px;font-weight:700;font-size:19px;cursor:pointer;font-family:inherit;}
+#bar button:hover{background:var(--deep);}
+#chat{flex:1 1 auto;overflow-y:auto;padding:16px;position:relative;z-index:1;}
+.msg{max-width:90%;padding:13px 16px;border-radius:16px;margin-bottom:12px;line-height:1.5;font-size:19px;white-space:pre-line;}
+.bot{background:#fff;border:2px solid var(--line);border-top-left-radius:4px;color:var(--ink);}
+.me{background:var(--red);color:#fff;margin-left:auto;border-top-right-radius:4px;}
+#chips{padding:2px 16px 10px;display:flex;flex-wrap:nowrap;gap:8px;position:relative;z-index:1;flex:0 0 auto;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+#chips button{flex:0 0 auto;white-space:nowrap;background:#fff;border:2px solid var(--red);color:var(--deep);border-radius:22px;padding:7px 14px;font-size:19px;font-weight:700;cursor:pointer;font-family:inherit;}
+#chips button:hover{background:var(--red);color:#fff;}
+form{display:flex;gap:8px;padding:12px 16px;background:var(--brown);flex:0 0 auto;position:relative;z-index:1;}
+input{flex:1;min-width:0;border:0;border-radius:24px;padding:12px 16px;font-size:19px;font-family:inherit;color:var(--ink);background:#fff;}
+form button{background:var(--orange);color:#fff;border:0;border-radius:24px;padding:12px 20px;font-weight:700;cursor:pointer;font-size:19px;font-family:inherit;}
+form button:hover{background:var(--red);}
+footer{background:var(--brown);color:#fff;-webkit-text-fill-color:#fff;text-align:center;font-size:19px;padding:0 16px 12px;position:relative;z-index:1;flex:0 0 auto;}
+footer a{color:#FFD7A8;-webkit-text-fill-color:#FFD7A8;}
+.bot a{color:var(--deep);-webkit-text-fill-color:var(--deep);font-weight:700;text-decoration:underline;word-break:break-word;}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<div id="bar">
+<span class="t"><img src="https://burnhim.github.io/zozobra-bots/img/sponsor-badge.png" alt=""><h1 id="hdr">Ask the Sponsor Desk</h1></span>
+<span class="r"><button id="lang" type="button">Español</button></span>
+</div>
+<div id="chat"></div>
+<div id="chips"></div>
+<form id="f" autocomplete="off">
+<input id="q" placeholder="Ask about sponsoring…">
+<button type="submit" id="send">Send</button>
+</form>
+<footer id="foot"></footer>
+
+<script>
+var APPLY = "[sponsor application](https://burnzozobra.com/sponsor-application/)";
+var APPLY_ES = "[solicitud de patrocinio](https://burnzozobra.com/sponsor-application/)";
+var DECK = "[2027 Zozobra Sponsorship Deck](https://burnzozobra.com/wp-content/uploads/2026/09/Zozobra-2027-Sponsorship-Deck-11x8.5.pdf)";
+var DECK_ES = "[folleto de patrocinio de Zozobra 2027](https://burnzozobra.com/wp-content/uploads/2026/09/Zozobra-2027-Sponsorship-Deck-11x8.5.pdf)";
+var BDECK = "[Balloon sponsorship deck](https://burnzozobra.com/wp-content/uploads/2026/09/Zozobra-the-Balloon-Sponsorship-Deck-2026-27.pdf)";
+var DDECK = "[Día de los Muertos sponsorship deck](https://burnzozobra.com/wp-content/uploads/2026/09/Dia_de_los_Muertos_2026_Sponsorship_Deck.pdf)";
+var WHY = "[Why Sponsor page](https://burnzozobra.com/sponsors/)";
+var EMAIL = "burnhim@burnzozobra.com";
+var PHONE = "855-ZOZOBRA (855-969-6272)";
+
+var EN = {
+  hdr:"Ask the Sponsor Desk", lang:"Español", ph:"Ask about sponsoring…", send:"Send",
+  foot:'Kiwanis Club of Santa Fe Sponsor Desk · <b>v1</b> · <a href="mailto:burnhim@burnzozobra.com">burnhim@burnzozobra.com</a>',
+  hello:"Howdy, partner! I answer questions about sponsoring the 103rd Burning of Zozobra on Friday, September 3, 2027, plus Zozobra the Balloon, Día de los Muertos, New Year's Eve on the Plaza and the Fourth of July: levels, benefits, who you'll reach, in-kind gifts, custom packages, payment and tax letters.\n\nTap a button below or type your question.\n\nPuedes preguntarme en español también: toca el botón de arriba.",
+  chips:["Why sponsor?","Zozobra levels","What every sponsor gets","Who will I reach?","Custom package","In-kind","Small budget","Other events","How do I apply?","Paying","Tax letter","Talk to Ray"],
+  fallback:"I'm not sure about that one. Try asking about sponsorship levels, benefits, who you'll reach, tickets for your team, stage time, the wristbands, in-kind gifts, custom packages, paying, tax letters, or the Balloon, Día de los Muertos, New Year's Eve and Fourth of July. For anything else, Ray, our Event Chairman, is glad to talk it through: " + EMAIL + " or " + PHONE + ".",
+  kb:[
+   {k:["why sponsor","why should","why do you need","need sponsors","why","what does my money do","what does it pay for","make a difference","free for kids","keep zozobra free"],
+    a:"Because sponsors keep Zozobra open to every family.\n\n• Kids 10 and under get into General Admission free, and we intend to keep it that way.\n• General admission stays at $30, with no processing or credit card fees.\n• We give significant numbers of free tickets to disadvantaged New Mexico families who couldn't otherwise be there.\n• Free shuttles, a free ADA shuttle and a free Bike Valet get people there, and ZozoFest is free for four days the week before the burn.\n\nLike every business, our costs keep rising with inflation. We won't charge for children and we won't raise the ticket price, so sponsorships and premium seating make up the difference. Once all of Zozobra's bills are paid, net proceeds go to the Santa Fe Downtown Kiwanis Foundation for grants to nonprofits serving the region's children. Your gift works twice.\n\nMore on our " + WHY + "."},
+   {k:["level","levels","tier","tiers","packages","package list","price list","prices","how much","cost","options","menu","deck"],
+    a:"2027 Zozobra sponsorship levels:\n\n• Flare-Up · $500 to $1,000\n• Tio Coco · $1,000\n• Gloomies · $2,500\n• Torchbearer · $5,000\n• Beach Ball · $10,000\n• Fire Spirit · $12,000\n• ZozoFest · $15,000\n• Tickets · $25,000\n• Wristband · $50,000\n• You Name It · $60,000 and up\n\nYou can also build a custom package or give in kind. Ask me about any level by name, or open the " + DECK + "."},
+   {k:["flare-up","flare up","flareup","stage time","on stage","main stage","skit","song","giveaway","my message","five minutes","5 minutes"],
+    a:"Flare-Up · $500 to $1,000: five minutes on the main stage between 6 and 7 p.m. on burn night, for your message, a skit, a song or a giveaway. You supply the content and any gifts.\n\nThat 6 to 7 p.m. window is when the field is filling up, so stage time is some of the most valuable recognition we offer."},
+   {k:["tio coco","tío coco","coco","project eliminate"],
+    a:"Tio Coco · $1,000:\n\n• 4 General Admission tickets\n• Named as donating to Kiwanis Project Eliminate\n• Your logo on the website, the ZozoFest Digital Splash Wall and at the burn\n• A banner at ZozoFest and the burn\n• 2 each of T-shirts, posters and children's posters"},
+   {k:["gloomies","gloomie","gloom queen","east of the beast","staircase photo"],
+    a:"Gloomies · $2,500:\n\n• 2 East of the Beast Premium tickets\n• A keepsake photo with the Gloom Queen on the Zozobra staircase\n• Logo and banner recognition\n• 2 each of T-shirts, posters and children's posters"},
+   {k:["torchbearer","torchbearers","fire pit","patch","patches"],
+    a:"Torchbearer · $5,000:\n\n• 4 Fire Pit Premium tickets\n• Prominent banner placement\n• 2 Torchbearer patches\n• Logo recognition\n• 2 each of T-shirts, posters and children's posters"},
+   {k:["beach ball","beach balls","beachball"],
+    a:"Beach Ball · $10,000:\n\n• 4 Front and Center Premium tickets\n• Your logo on 2,000 keepsake beach balls bouncing through the crowd\n• A named grant to a Santa Fe youth nonprofit, with a check presentation\n• Primacy logo placement\n• 20 beach balls for you"},
+   {k:["fire spirit level","fire spirit sponsor","fire spirit","front and center"],
+    a:"Fire Spirit · $12,000:\n\n• 4 Front and Center Premium tickets\n• A named grant with a check presentation\n• A keepsake photo with the Fire Spirit on the Zozobra staircase\n• Primacy logo placement, including the grant press releases"},
+   {k:["zozofest sponsor","zozofest level","zozofest","art exhibit","art show"],
+    a:"ZozoFest · $15,000:\n\n• Named sponsor of ZozoFest and the Zozobra Art Exhibit, four free days the week before the burn (46,331 visits in 2026)\n• 2 Ultimate Zozobra Experience tickets\n• A :30 spot on 3 jumbotron screens\n• Coverage on KOAT\n• A named grant"},
+   {k:["tickets sponsor","ticket sponsor","tickets level","logo on tickets","logo on the tickets","on every ticket"],
+    a:"Tickets · $25,000:\n\n• Your logo on the tickets for 50,000 attendees and every online ticket\n• A live thank-you from the pageant stage\n• 2 Ultimate Zozobra Experience tickets\n• A :30 jumbotron spot\n• Coverage on KOAT\n• A named grant"},
+   {k:["wristband","wristbands","light-up","light up","qr code","qr","coupon code","led"],
+    a:"Wristband · $50,000: your logo and a QR code on 45,000 light-up wristbands that change color with the show.\n\n• The QR code opens your promotion, or a site with your coupon code built in.\n• Fans can bring the wristband to your locations for a discount or special offer, so the night keeps working for you long after the fire is out. A bank, for example, might offer a bonus for opening an account.\n• Plus a live stage thank-you, 2 Ultimate Zozobra Experience tickets, a :30 jumbotron spot, coverage on KOAT and a named grant."},
+   {k:["you name it","name it","top level","biggest","largest","presenting","title sponsor","60,000","lead sponsor"],
+    a:"You Name It · $60,000 and up: a Zozobra experience built around you, plus lead sponsor billing on the Foundation's grant RFP and funding press releases.\n\nTell us your goals and Ray will build it with you: " + EMAIL + " or " + PHONE + "."},
+   {k:["benefit","benefits","what do i get","what do sponsors get","every sponsor","all sponsors","recognition","logo","thank you from the stage","perks"],
+    a:"Every Zozobra sponsor receives:\n\n• A tax-deductible donation letter\n• Your logo on burnzozobra.com\n• A public thank-you from the stage\n\nHigher levels add premium viewing tickets, banners at ZozoFest and the burn, jumbotron spots, coverage on KOAT, keepsake photos and named grants. Ask me about any level, or open the " + DECK + "."},
+   {k:["reach","audience","attendance","how many people","crowd","exposure","impressions","viewers","koat","tv","broadcast","livestream","facebook","social media","email list","marketing"],
+    a:"Who you'll reach:\n\n• 50,000 people on the field at Fort Marcy Park, a crowd we fill again and again. Four out of five are Santa Fe County residents.\n• 1,265,932 total audience in 2026, in person, on KOAT-TV and livestreamed\n• 46,331 ZozoFest visits over four free days\n• 7.1 million Facebook reach in 2026, 76% of it beyond our followers\n• More than 100,000 email subscribers, plus 1.8 million website sessions in 2026\n\nIn 2026 the Burning was designated an official NM Spirit event for the nation's 250th anniversary by the New Mexico Department of Cultural Affairs."},
+   {k:["custom","build my own","build your own","my own package","idea","ideas","unique","special","something different","creative","activation","sampling","booth for my brand","photo booth","saloon","wanted poster"],
+    a:"Custom packages are our favorite. Tell us your budget and goals and we'll build it with you. A few ideas:\n\n• A reserved block for a high school, college, family or company reunion\n• A private VIP section or hospitality tent for your clients\n• Your name on a premium section for the night, or on a ZozoFest night\n• A Zozobra the Kid saloon or wanted-poster photo booth\n• Product sampling or a brand activation at ZozoFest\n• Your team volunteering together on the build crew or the balloon crew\n• The radio-controlled Zozobra balloon at your company event\n• Tickets donated in your name to a school or nonprofit\n\nThe best packages give your guests something they can't buy a ticket for. Choose \"Create my own custom package\" on the " + APPLY + ", or talk to Ray: " + EMAIL + "."},
+   {k:["in-kind","in kind","inkind","products","services","donate goods","trade","barter","printing","signage","catering","equipment"],
+    a:"In-kind support helps just as much as a check. Printing, signage, catering, equipment and other products or services that lower our costs leave more net proceeds for kids once Zozobra's bills are paid.\n\nChoose \"In-kind\" on the " + APPLY + " and tell us what you could provide. You can add an estimated value; valuing an in-kind gift is the donor's responsibility, and we'll acknowledge what you give."},
+   {k:["small","small business","small budget","little","not much","limited budget","too small","minimum","smallest","cheapest","under 500","less than","any amount"],
+    a:"No amount is too big or too small. Everything helps.\n\nLevels start with the $500 Flare-Up, and if nothing in the deck fits your budget, tell us what does and we'll work out a sponsorship with you. In-kind gifts count too.\n\nGiving as an individual instead of a business? You can donate at [burnzozobra.com/donate](https://burnzozobra.com/donate/)."},
+   {k:["multiple events","more than one","several events","bundle","multi-event","multi event","discount","all events","combine"],
+    a:"Sponsoring more than one event earns a multi-event discount. Pick \"More than one event\" on the " + APPLY + " and check the events you want, or ask Ray to put a bundle together: " + EMAIL + "."},
+   {k:["other events","balloon","dia","día","muertos","day of the dead","new year","nye","fourth of july","july 4","4th of july","fireworks","events"],
+    a:"The Kiwanis Club of Santa Fe produces five celebrations you can sponsor:\n\n• The Burning of Zozobra: about 50,000 people in person. " + DECK + "\n• Zozobra the Balloon: flew 5 times at the 2025 Balloon Fiesta, which drew 851,994 guest visits. Ask me about \"Balloon levels.\"\n• Día de los Muertos on the Santa Fe Plaza: 46,891 people over two nights in 2025. Ask me about \"Día levels.\"\n• New Year's Eve on the Santa Fe Plaza: 13,980 people in 2025. Ask me about \"New Year's Eve levels.\"\n• The Fourth of July at Franklin E. Miles Park: 45,890 people in 2026. Ask me about \"Fourth of July partners.\""},
+   {k:["balloon level","balloon levels","balloon sponsor","hot air balloon","flight sponsor","glow","inflation","rc balloon","radio-controlled","fiesta"],
+    a:"Zozobra the Balloon sponsorship levels:\n\n• Flight · $20,000: your banner on the balloon basket, your logo on the balloon trailer, TV and radio interview opportunities, named sponsor at the rally of your choice, and 4 VIP Premium Viewing tickets to the 103rd Burning\n• Glow · $15,000: your banner on the basket during glows, named sponsor at the rally of your choice, and 2 VIP Premium Viewing tickets\n• Inflation · $10,000: named sponsor at the rally of your choice and 4 Premium Viewing bleacher seats\n• RC Balloon · $5,000: named sponsor at an RC balloon rally and 2 Premium Viewing bleacher seats\n\nEvery Balloon sponsor's banner also hangs at the Burning of Zozobra, and every sponsor gets marketing and social media features, an invitation to crew at balloon events, and official balloon merchandise. " + BDECK + "."},
+   {k:["dia level","día level","dia levels","día levels","dia sponsor","día sponsor","ofrenda","angel","santo","maestro","corazon","corazón","amigo","ayudante","recuerdos","alegria","alegría"],
+    a:"Día de los Muertos sponsorship levels:\n\n• Angel · $15,000\n• Santo · $10,000\n• Maestro · $5,000\n• Corazón · $2,500\n• Amigo · $1,500\n• Ayudante · $1,000\n• Recuerdos · $750\n• Alegría · $600\n• Ofrenda sponsor · $500: your name on one of the community altars on the Plaza\n\nEvery Día sponsor receives a public thank-you from the stage, a logo on the event website, banner and booth or ofrenda signage, and social media mentions. All gifts are tax-deductible. " + DDECK + "."},
+   {k:["new year's eve level","new years eve level","nye level","nye levels","nye sponsor","new year's eve sponsor","new years eve sponsor","new years eve sponsorship","new year's eve sponsorship","zia rising","bonfire","bizcochito","farolito","midnight"],
+    a:"New Year's Eve on the Santa Fe Plaza is the City of Santa Fe's free celebration, produced by the Kiwanis Club of Santa Fe: live music on the Bandstand, piñon bonfires, hot chocolate and bizcochitos, and the Zia rising at midnight.\n\n• Zia Rising · $5,000\n• Bonfire · $2,500\n• Bizcochito · $1,000\n• Farolito · $500\n\nOr build your own, like the midnight countdown from the Dignitary Stage, and we'll put together recognition that fits."},
+   {k:["fourth of july partner","july 4 partner","4th of july partner","fourth of july sponsor","july sponsor","presenting partner","media partner","trade partner","drone"],
+    a:"Santa Fe's Fourth of July is funded by the City of Santa Fe and hosted by the Kiwanis Club of Santa Fe. We welcome presenting partners and media or trade partners, and we'll build the package with you. Choose the Fourth of July on the " + APPLY + ", or write to " + EMAIL + "."},
+   {k:["apply","application","sign up","how do i","how to","get started","start","become a sponsor","join","form"],
+    a:"Apply in four short steps on the " + APPLY + ":\n\n1. Pick your event, or more than one.\n2. Choose a level, or build your own package. In-kind counts too.\n3. Tell us about your business and how you'd like to be recognized.\n4. Choose how you'd like to pay.\n\nApplying isn't a contract or a payment. Ray will follow up personally to confirm your benefits, then send an agreement or invoice."},
+   {k:["deadline","when do i","by when","due","commit","timeline","how soon","last day","too late"],
+    a:"For a full year of recognition on the 103rd, we ask sponsors to commit by Tuesday, December 15, 2026, so your logo and benefits can be in place as we roll out 2027 materials. Tickets and 103rd merchandise go on sale Tuesday, April 13, 2027.\n\nSponsors are welcome after that, too. Just know some printed and early recognition may already be set. Start on the " + APPLY + "."},
+   {k:["pay","payment","paying","credit card","card","invoice","check","cheque","mail a check","stripe","installments","pay later"],
+    a:"On the " + APPLY + " you can choose to:\n\n• Pay now by credit card. Your card is charged the estimated total shown on the form, processed securely by Stripe.\n• Ask for an invoice.\n• Mail a check.\n• Ask Ray to call you first to talk it through.\n\nChecks go to Kiwanis Club of Santa Fe / Zozobra Service Account, P.O. Box 622, Santa Fe, NM 87504."},
+   {k:["tax","deductible","tax-deductible","write off","writeoff","receipt","donation letter","501","501c3","nonprofit status","ein","w-9","w9"],
+    a:"Every sponsor can receive a tax-deductible donation letter; just say yes on the application. Gifts go through the Kiwanis Club of Santa Fe as fiscal agent for the Preservation of the Burning of Zozobra, a 501(c)(3).\n\nYour tax advisor can tell you how it applies to your business. Need a W-9? Email " + EMAIL + "."},
+   {k:["grant","named grant","which nonprofit","choose the charity","choose the grantee","pick the charity","pick the nonprofit","charity","which charity","grantee","where does the money go","foundation","kids charity","net proceeds","proceeds"],
+    a:"Once all of Zozobra's bills are paid, net proceeds go to the Santa Fe Downtown Kiwanis Foundation, which grants them to nonprofits serving the region's children.\n\nSponsorships that include a named grant carry your company's name on a grant, with a check presentation, but the Foundation chooses the grantee; sponsors don't select it."},
+   {k:["tickets for","employees","clients","staff","premium viewing","premium seats","vip","hospitality","seats","bleachers","ultimate zozobra experience","uze"],
+    a:"Many levels include tickets you can share with employees and clients: General Admission at Tio Coco, premium viewing from Gloomies up, and Ultimate Zozobra Experience tickets at ZozoFest, Tickets and Wristband. A private VIP section or hospitality tent can be built as a custom package.\n\nPublic tickets for the 103rd go on sale Tuesday, April 13, 2027."},
+   {k:["hotel","hotels","lodging","restaurant","restaurants","bar","coupon for tickets","partner with","package for guests"],
+    a:"Hotels and restaurants make great partners.\n\n• Hotels can offer guest packages that pair a stay with premium seating at the burn.\n• Restaurants can offer guests a discount or coupon on Zozobra tickets, or the reverse.\n\nRay sets these up personally: " + EMAIL + " or " + PHONE + "."},
+   {k:["volunteer","team day","our team","employees volunteer","build crew","service day"],
+    a:"A volunteer day for your team is a great add-on. Your crew can work alongside ours, on the build crew or the balloon crew, and it can be part of a custom package. Mention it in \"Tell us your idea\" on the " + APPLY + "."},
+   {k:["logo file","send logo","upload logo","logo format","vector","high resolution","artwork for banner"],
+    a:"You can upload your logo on the application: PNG, JPG, SVG, EPS, AI or PDF, up to 25 MB. A high-resolution or vector file looks best on banners and screens. You can also send it later to " + EMAIL + "."},
+   {k:["sponsored before","renew","renewal","last year","returning","again"],
+    a:"Welcome back, and thank you! Use the same " + APPLY + " and choose \"Yes\" for having sponsored before. Ray will follow up to confirm your benefits for the 103rd."},
+   {k:["vendor","vend","sell food","food truck","booth","sell at"],
+    a:"Looking to sell food or goods instead? That's our vendor program. Apply at [burnzozobra.com/vendors](https://burnzozobra.com/vendors/) or email vendors@burnzozobra.com."},
+   {k:["donate","donation","individual","personal gift","give money"],
+    a:"Giving as an individual? Thank you! You can donate at [burnzozobra.com/donate](https://burnzozobra.com/donate/), or mail a check to Kiwanis Club of Santa Fe / Zozobra Service Account, P.O. Box 622, Santa Fe, NM 87504."},
+   {k:["contact","talk","call","phone","email","ray","chairman","person","human","someone","question"],
+    a:"Ray, our Event Chairman, follows up with every sponsor personally.\n\n• Email " + EMAIL + "\n• Call " + PHONE + "\n\nOr send your application and choose \"Call me first to talk it through.\""},
+   {k:["date","when is","where is","burn day","fort marcy","103rd","theme","zozobra the kid"],
+    a:"The 103rd Burning of Zozobra is Friday, September 3, 2027, at Fort Marcy Park in Santa Fe. This year's theme is \"Zozobra the Kid,\" and ZozoFest runs the week before.\n\nWant your business in the story? Ask me about \"custom packages.\""},
+   {k:["hello","hi","hey","howdy","hola"],
+    a:"Howdy! Ask me anything about sponsoring, or tap a button below to get started."},
+   {k:["thank","thanks","gracias"],
+    a:"Thank you for riding with us! When you're ready, the " + APPLY + " takes about ten minutes."}
+  ]
+};
+
+var ES = {
+  hdr:"Patrocinios", lang:"English", ph:"Pregunte sobre patrocinar…", send:"Enviar",
+  foot:'Patrocinios del Kiwanis Club of Santa Fe · <b>v1</b> · <a href="mailto:burnhim@burnzozobra.com">burnhim@burnzozobra.com</a>',
+  hello:"¡Bienvenido, compañero! Respondo preguntas sobre patrocinar la 103.ª Quema de Zozobra el viernes 3 de septiembre de 2027, además de Zozobra the Balloon, el Día de los Muertos, la Víspera de Año Nuevo en la Plaza y el Cuatro de Julio: niveles, beneficios, a quién llega, donaciones en especie, paquetes personalizados, pagos y cartas de deducción.\n\nToque un botón abajo o escriba su pregunta.\n\nYou can switch to English with the button above.",
+  chips:["¿Por qué patrocinar?","Niveles de Zozobra","Lo que reciben todos","¿A quién llego?","Paquete personalizado","En especie","Presupuesto pequeño","Otros eventos","¿Cómo solicito?","Pagos","Carta de deducción","Hablar con Ray"],
+  fallback:"No estoy seguro de eso. Pregúnteme sobre niveles, beneficios, a quién llega, boletos para su equipo, tiempo en el escenario, las pulseras, donaciones en especie, paquetes personalizados, pagos, cartas de deducción, o el Balloon, el Día de los Muertos, la Víspera de Año Nuevo y el Cuatro de Julio. Para cualquier otra cosa, Ray, nuestro Presidente del Evento, con gusto lo platica con usted: " + EMAIL + " o " + PHONE + ".",
+  kb:[
+   {k:["por que","porque","para que","necesitan patrocinadores","que hace mi dinero","gratis para los ninos","diferencia"],
+    a:"Porque los patrocinadores mantienen a Zozobra abierto para todas las familias.\n\n• Los niños de 10 años o menos entran gratis a General Admission (entrada general), y así lo queremos mantener.\n• La entrada general se queda en $30, sin cargos por procesamiento ni por tarjeta.\n• Regalamos una cantidad importante de boletos a familias de Nuevo México de escasos recursos que de otra manera no podrían asistir.\n• Autobuses gratuitos, un autobús ADA gratuito y un Bike Valet gratuito llevan a la gente, y ZozoFest es gratis durante cuatro días la semana antes de la quema.\n\nComo en cualquier negocio, nuestros costos siguen subiendo con la inflación. No vamos a cobrar por los niños ni a subir el precio del boleto, así que los patrocinios y los asientos premium cubren la diferencia. Una vez pagadas todas las cuentas de Zozobra, las ganancias netas van a la Santa Fe Downtown Kiwanis Foundation para subvenciones a organizaciones que sirven a los niños de la región. Su donación rinde dos veces."},
+   {k:["nivel","niveles","precios","cuanto cuesta","cuanto","costo","opciones","paquetes","folleto"],
+    a:"Niveles de patrocinio de Zozobra 2027:\n\n• Flare-Up · $500 a $1,000\n• Tio Coco · $1,000\n• Gloomies · $2,500\n• Torchbearer · $5,000\n• Beach Ball · $10,000\n• Fire Spirit · $12,000\n• ZozoFest · $15,000\n• Tickets · $25,000\n• Wristband · $50,000\n• You Name It · $60,000 o más\n\nTambién puede armar un paquete personalizado o donar en especie. Pregúnteme por cualquier nivel por su nombre, o abra el " + DECK_ES + "."},
+   {k:["flare-up","flare up","escenario","tiempo en el escenario","cinco minutos","5 minutos","cancion","regalos"],
+    a:"Flare-Up · $500 a $1,000: cinco minutos en el escenario principal entre las 6 y las 7 p.m. la noche de la quema, para su mensaje, una actuación, una canción o regalos. Usted aporta el contenido y los regalos.\n\nA esa hora el campo se está llenando, así que el tiempo en el escenario es de lo más valioso que ofrecemos."},
+   {k:["tio coco","tío coco","coco","project eliminate"],
+    a:"Tio Coco · $1,000:\n\n• 4 boletos de General Admission\n• Reconocimiento como donante a Kiwanis Project Eliminate\n• Su logotipo en el sitio web, en la pantalla digital de ZozoFest y en la quema\n• Una manta en ZozoFest y en la quema\n• 2 camisetas, 2 pósters y 2 pósters infantiles"},
+   {k:["gloomies","gloomie","gloom queen","reina","east of the beast"],
+    a:"Gloomies · $2,500:\n\n• 2 boletos Premium en East of the Beast\n• Una foto de recuerdo con la Gloom Queen en la escalera de Zozobra\n• Reconocimiento con logotipo y manta\n• 2 camisetas, 2 pósters y 2 pósters infantiles"},
+   {k:["torchbearer","antorcha","fire pit","parche","parches"],
+    a:"Torchbearer · $5,000:\n\n• 4 boletos Premium en el Fire Pit\n• Manta en lugar destacado\n• 2 parches de Torchbearer\n• Reconocimiento con logotipo\n• 2 camisetas, 2 pósters y 2 pósters infantiles"},
+   {k:["beach ball","pelotas","pelota de playa"],
+    a:"Beach Ball · $10,000:\n\n• 4 boletos Premium en Front and Center\n• Su logotipo en 2,000 pelotas de playa de recuerdo que rebotan entre el público\n• Una subvención a su nombre para una organización juvenil de Santa Fe, con entrega de cheque\n• Logotipo en lugar preferente\n• 20 pelotas de playa para usted"},
+   {k:["fire spirit","espiritu del fuego","front and center"],
+    a:"Fire Spirit · $12,000:\n\n• 4 boletos Premium en Front and Center\n• Una subvención a su nombre con entrega de cheque\n• Una foto de recuerdo con el Espíritu del Fuego en la escalera de Zozobra\n• Logotipo en lugar preferente, incluidos los comunicados de prensa de la subvención"},
+   {k:["zozofest","exhibicion de arte","exposicion"],
+    a:"ZozoFest · $15,000:\n\n• Patrocinador con nombre de ZozoFest y de la Exhibición de Arte de Zozobra, cuatro días gratuitos la semana antes de la quema (46,331 visitas en 2026)\n• 2 boletos Ultimate Zozobra Experience\n• Un anuncio de :30 en 3 pantallas gigantes\n• Cobertura en KOAT\n• Una subvención a su nombre"},
+   {k:["tickets","logo en los boletos","boletos con mi logo","cada boleto"],
+    a:"Tickets · $25,000:\n\n• Su logotipo en los boletos de 50,000 asistentes y en cada boleto en línea\n• Agradecimiento en vivo desde el escenario\n• 2 boletos Ultimate Zozobra Experience\n• Un anuncio de :30 en las pantallas gigantes\n• Cobertura en KOAT\n• Una subvención a su nombre"},
+   {k:["pulsera","pulseras","wristband","luminosa","codigo qr","qr","cupon"],
+    a:"Wristband · $50,000: su logotipo y un código QR en 45,000 pulseras luminosas que cambian de color con el espectáculo.\n\n• El código QR abre su promoción, o un sitio con su código de cupón ya incluido.\n• El público puede llevar la pulsera a sus tiendas para un descuento u oferta especial, así que la noche sigue trabajando para usted mucho después de apagarse el fuego.\n• Además: agradecimiento en vivo desde el escenario, 2 boletos Ultimate Zozobra Experience, un anuncio de :30, cobertura en KOAT y una subvención a su nombre."},
+   {k:["you name it","nivel mas alto","el mas grande","patrocinador principal","60,000"],
+    a:"You Name It · $60,000 o más: una experiencia de Zozobra hecha a su medida, y crédito como patrocinador principal en la convocatoria de subvenciones de la Fundación y en sus comunicados de prensa.\n\nCuéntenos sus metas y Ray la arma con usted: " + EMAIL + " o " + PHONE + "."},
+   {k:["beneficio","beneficios","que recibo","que reciben","todos los patrocinadores","reconocimiento","logotipo","logo"],
+    a:"Todos los patrocinadores de Zozobra reciben:\n\n• Una carta de donación deducible de impuestos\n• Su logotipo en burnzozobra.com\n• Un agradecimiento público desde el escenario\n\nLos niveles más altos agregan boletos de vista premium, mantas en ZozoFest y en la quema, anuncios en pantallas gigantes, cobertura en KOAT, fotos de recuerdo y subvenciones a su nombre."},
+   {k:["a quien","publico","asistencia","cuanta gente","cuantas personas","koat","television","transmision","facebook","redes","correo"],
+    a:"A quién llega:\n\n• 50,000 personas en el campo de Fort Marcy Park, que llenamos una y otra vez. Cuatro de cada cinco viven en el condado de Santa Fe.\n• 1,265,932 personas de audiencia total en 2026, en persona, en KOAT-TV y por internet\n• 46,331 visitas a ZozoFest en cuatro días gratuitos\n• 7.1 millones de alcance en Facebook en 2026, 76% fuera de nuestros seguidores\n• Más de 100,000 suscriptores de correo y 1.8 millones de visitas al sitio web en 2026\n\nEn 2026, el Departamento de Asuntos Culturales de Nuevo México nombró la Quema evento oficial NM Spirit por el 250.º aniversario del país."},
+   {k:["personalizado","a mi medida","mi propio paquete","idea","ideas","algo diferente","activacion","muestras","cabina de fotos","saloon","cartel"],
+    a:"Los paquetes personalizados son nuestros favoritos. Díganos su presupuesto y sus metas y lo armamos con usted. Algunas ideas:\n\n• Una sección reservada para una reunión de preparatoria, universidad, familia o empresa\n• Una sección VIP privada o carpa de hospitalidad para sus clientes\n• Su nombre en una sección premium por la noche, o en una noche de ZozoFest\n• Un saloon de Zozobra the Kid o una cabina de fotos estilo cartel del Viejo Oeste\n• Muestras de producto o una activación de marca en ZozoFest\n• Su equipo como voluntario con nuestro equipo de construcción o del globo\n• El globo de Zozobra a control remoto en un evento de su empresa\n• Boletos donados a su nombre a una escuela u organización\n\nElija \"Create my own custom package\" en la " + APPLY_ES + ", o hable con Ray: " + EMAIL + "."},
+   {k:["en especie","productos","servicios","intercambio","impresion","letreros","comida","equipo"],
+    a:"La ayuda en especie vale tanto como un cheque. Impresión, letreros, comida, equipo y otros productos o servicios que bajan nuestros costos dejan más ganancias netas para los niños una vez pagadas las cuentas de Zozobra.\n\nElija \"In-kind\" en la " + APPLY_ES + " y díganos qué podría aportar. Puede agregar un valor estimado; calcular el valor de una donación en especie le corresponde al donante, y nosotros reconocemos lo que usted done."},
+   {k:["pequeno","pequeño","poco","presupuesto","minimo","lo menos","cualquier cantidad","negocio pequeno"],
+    a:"Ninguna cantidad es demasiado grande ni demasiado pequeña. Todo ayuda.\n\nLos niveles empiezan con el Flare-Up de $500, y si nada en el folleto le conviene, díganos qué le funciona y armamos un patrocinio con usted. Lo que se dona en especie también cuenta.\n\n¿Quiere donar como persona y no como negocio? Puede hacerlo en [burnzozobra.com/donate](https://burnzozobra.com/donate/)."},
+   {k:["varios eventos","mas de un evento","descuento","paquete de eventos","combinar","todos los eventos"],
+    a:"Patrocinar más de un evento le da un descuento. Elija \"More than one event\" en la " + APPLY_ES + " y marque los eventos que quiera, o pídale a Ray que arme un paquete: " + EMAIL + "."},
+   {k:["otros eventos","globo","balloon","dia de los muertos","muertos","ano nuevo","año nuevo","cuatro de julio","4 de julio","fuegos artificiales","eventos"],
+    a:"El Kiwanis Club of Santa Fe produce cinco celebraciones que puede patrocinar:\n\n• La Quema de Zozobra: unas 50,000 personas en persona.\n• Zozobra the Balloon: voló 5 veces en el Balloon Fiesta de 2025, que tuvo 851,994 visitas.\n• Día de los Muertos en la Plaza de Santa Fe: 46,891 personas en dos noches en 2025.\n• Víspera de Año Nuevo en la Plaza de Santa Fe: 13,980 personas en 2025.\n• El Cuatro de Julio en Franklin E. Miles Park: 45,890 personas en 2026.\n\nPregúnteme por los niveles del globo, del Día, de Año Nuevo o por los socios del Cuatro de Julio."},
+   {k:["niveles del globo","nivel del globo","globo aerostatico","flight","glow","inflation","rc balloon","control remoto","fiesta"],
+    a:"Niveles de patrocinio de Zozobra the Balloon:\n\n• Flight · $20,000: su manta en la canasta del globo, su logotipo en el remolque, oportunidades de entrevista en TV y radio, patrocinador con nombre en el rally que elija y 4 boletos VIP Premium para la 103.ª Quema\n• Glow · $15,000: su manta en la canasta durante los glows, patrocinador con nombre en el rally que elija y 2 boletos VIP Premium\n• Inflation · $10,000: patrocinador con nombre en el rally que elija y 4 asientos Premium en gradas\n• RC Balloon · $5,000: patrocinador con nombre en un rally de globos a control remoto y 2 asientos Premium en gradas\n\nLa manta de cada patrocinador del globo también se cuelga en la Quema de Zozobra. " + BDECK + "."},
+   {k:["niveles del dia","nivel del dia","patrocinar el dia","ofrenda","angel","santo","maestro","corazon","amigo","ayudante","recuerdos","alegria"],
+    a:"Niveles de patrocinio del Día de los Muertos:\n\n• Angel · $15,000\n• Santo · $10,000\n• Maestro · $5,000\n• Corazón · $2,500\n• Amigo · $1,500\n• Ayudante · $1,000\n• Recuerdos · $750\n• Alegría · $600\n• Patrocinio de ofrenda · $500: su nombre en uno de los altares comunitarios de la Plaza\n\nCada patrocinador recibe un agradecimiento público desde el escenario, su logotipo en el sitio web del evento, en la manta y en los letreros, y menciones en redes sociales. Todas las donaciones son deducibles de impuestos. " + DDECK + "."},
+   {k:["niveles de ano nuevo","nivel de ano nuevo","patrocinar ano nuevo","zia rising","fogata","bizcochito","farolito","medianoche"],
+    a:"La Víspera de Año Nuevo en la Plaza de Santa Fe es la celebración gratuita de la Ciudad de Santa Fe, producida por el Kiwanis Club of Santa Fe: música en vivo en el Bandstand, fogatas de piñón, chocolate caliente y bizcochitos, y la Zia que se eleva a medianoche.\n\n• Zia Rising · $5,000\n• Bonfire · $2,500\n• Bizcochito · $1,000\n• Farolito · $500\n\nO arme su propio paquete, como la cuenta regresiva de medianoche desde el escenario de dignatarios."},
+   {k:["socio del cuatro","socios del cuatro","patrocinar el cuatro","socio presentador","socio de medios","drones"],
+    a:"El Cuatro de Julio de Santa Fe lo financia la Ciudad de Santa Fe y lo organiza el Kiwanis Club of Santa Fe. Recibimos socios presentadores y socios de medios o de intercambio, y armamos el paquete con usted. Elija el Cuatro de Julio en la " + APPLY_ES + " o escriba a " + EMAIL + "."},
+   {k:["solicitar","solicitud","como solicito","como empiezo","empezar","ser patrocinador","formulario","inscribir"],
+    a:"Solicite en cuatro pasos cortos en la " + APPLY_ES + ":\n\n1. Elija su evento, o más de uno.\n2. Elija un nivel, o arme su propio paquete. Lo que se dona en especie también cuenta.\n3. Cuéntenos de su negocio y cómo quiere que lo reconozcamos.\n4. Elija cómo quiere pagar.\n\nSolicitar no es un contrato ni un pago. Ray le dará seguimiento en persona para confirmar sus beneficios y luego le enviará un acuerdo o una factura."},
+   {k:["fecha limite","cuando debo","plazo","compromiso","muy tarde","ultimo dia"],
+    a:"Para tener un año completo de reconocimiento en la 103.ª Quema, pedimos a los patrocinadores comprometerse a más tardar el martes 15 de diciembre de 2026, para que su logotipo y beneficios estén listos al lanzar los materiales de 2027. Los boletos y la mercancía de la 103.ª salen a la venta el martes 13 de abril de 2027.\n\nTambién recibimos patrocinadores después de esa fecha, aunque parte del reconocimiento impreso o temprano ya podría estar cerrado."},
+   {k:["pago","pagar","tarjeta","credito","factura","cheque","stripe"],
+    a:"En la " + APPLY_ES + " puede elegir:\n\n• Pagar ahora con tarjeta de crédito. Se cobra el total estimado que muestra el formulario, procesado de forma segura por Stripe.\n• Pedir una factura.\n• Enviar un cheque por correo.\n• Pedir que Ray le llame primero para platicarlo.\n\nLos cheques van a nombre de Kiwanis Club of Santa Fe / Zozobra Service Account, P.O. Box 622, Santa Fe, NM 87504."},
+   {k:["impuestos","deducible","deduccion","carta","recibo","501","w-9","w9"],
+    a:"Todo patrocinador puede recibir una carta de donación deducible de impuestos; solo marque \"Yes\" en la solicitud. Las donaciones pasan por el Kiwanis Club of Santa Fe como agente fiscal de la Preservation of the Burning of Zozobra, una organización 501(c)(3).\n\nSu asesor de impuestos le puede decir cómo aplica a su negocio. ¿Necesita un W-9? Escriba a " + EMAIL + "."},
+   {k:["subvencion","beneficiario","que organizacion","a donde va el dinero","fundacion","ganancias"],
+    a:"Una vez pagadas todas las cuentas de Zozobra, las ganancias netas van a la Santa Fe Downtown Kiwanis Foundation, que las otorga a organizaciones que sirven a los niños de la región.\n\nLos patrocinios con subvención a su nombre llevan el nombre de su empresa, con entrega de cheque, pero la Fundación elige al beneficiario; los patrocinadores no lo seleccionan."},
+   {k:["boletos para","empleados","clientes","vista premium","asientos","vip","hospitalidad","gradas","ultimate zozobra experience"],
+    a:"Muchos niveles incluyen boletos para compartir con empleados y clientes: General Admission en Tio Coco, vista premium desde Gloomies, y boletos Ultimate Zozobra Experience en ZozoFest, Tickets y Wristband. Una sección VIP privada o carpa de hospitalidad se puede armar como paquete personalizado.\n\nLos boletos al público para la 103.ª salen a la venta el martes 13 de abril de 2027."},
+   {k:["hotel","hoteles","hospedaje","restaurante","restaurantes"],
+    a:"Los hoteles y restaurantes son grandes socios.\n\n• Los hoteles pueden ofrecer paquetes que combinen la estancia con asientos premium en la quema.\n• Los restaurantes pueden ofrecer a sus clientes un descuento o cupón en boletos de Zozobra, o al revés.\n\nRay los arma en persona: " + EMAIL + " o " + PHONE + "."},
+   {k:["voluntario","voluntarios","nuestro equipo","dia de servicio"],
+    a:"Un día de voluntariado para su equipo es un gran complemento. Su gente puede trabajar junto a la nuestra, en el equipo de construcción o del globo, como parte de un paquete personalizado. Menciónelo en \"Tell us your idea\" en la " + APPLY_ES + "."},
+   {k:["archivo del logo","enviar logo","subir logo","formato","vector","alta resolucion"],
+    a:"Puede subir su logotipo en la solicitud: PNG, JPG, SVG, EPS, AI o PDF, hasta 25 MB. Un archivo de alta resolución o vectorial se ve mejor en mantas y pantallas. También puede enviarlo después a " + EMAIL + "."},
+   {k:["renovar","patrocine antes","el ano pasado","otra vez","de nuevo"],
+    a:"¡Bienvenido de nuevo, y gracias! Use la misma " + APPLY_ES + " y marque \"Yes\" en si ha patrocinado antes. Ray le dará seguimiento para confirmar sus beneficios de la 103.ª."},
+   {k:["vendedor","vender","puesto","food truck","comida para vender"],
+    a:"¿Quiere vender comida o productos? Eso es nuestro programa de vendedores. Solicite en [burnzozobra.com/vendors-es](https://burnzozobra.com/vendors-es/) o escriba a vendors@burnzozobra.com."},
+   {k:["donar","donacion","como persona","regalo personal"],
+    a:"¿Quiere donar como persona? ¡Gracias! Puede hacerlo en [burnzozobra.com/donate](https://burnzozobra.com/donate/), o enviar un cheque a Kiwanis Club of Santa Fe / Zozobra Service Account, P.O. Box 622, Santa Fe, NM 87504."},
+   {k:["contacto","hablar","llamar","telefono","correo","ray","presidente","persona","alguien","pregunta"],
+    a:"Ray, nuestro Presidente del Evento, da seguimiento en persona a cada patrocinador.\n\n• Correo: " + EMAIL + "\n• Teléfono: " + PHONE + "\n\nO envíe su solicitud y elija \"Call me first to talk it through.\""},
+   {k:["fecha","cuando es","donde es","fort marcy","103","tema","zozobra the kid"],
+    a:"La 103.ª Quema de Zozobra es el viernes 3 de septiembre de 2027, en Fort Marcy Park en Santa Fe. El tema de este año es \"Zozobra the Kid\", y ZozoFest es la semana anterior.\n\n¿Quiere que su negocio sea parte de la historia? Pregúnteme por los \"paquetes personalizados\"."},
+   {k:["hola","buenas","buenos dias","buenas tardes"],
+    a:"¡Hola! Pregúnteme lo que quiera sobre patrocinar, o toque un botón abajo para empezar."},
+   {k:["gracias"],
+    a:"¡Gracias por acompañarnos! Cuando esté listo, la " + APPLY_ES + " toma unos diez minutos."}
+  ]
+};
+
+var L = (location.search.indexOf('lang=es') > -1) ? ES : EN;
+var chat = document.getElementById('chat');
+
+function norm(s){return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[’]/g,"'");}
+
+function answer(text){
+  var q = ' ' + norm(text) + ' ', best = null, score = 0;
+  for (var i=0;i<L.kb.length;i++){
+    var s = 0;
+    for (var j=0;j<L.kb[i].k.length;j++){
+      var key = norm(L.kb[i].k[j]);
+      var hit = key.length <= 3 ? new RegExp('[^a-z0-9]' + key.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '[^a-z0-9]').test(q) : q.indexOf(key) > -1;
+      if (hit) s += key.length;
+    }
+    if (s > score){ score = s; best = L.kb[i]; }
+  }
+  return best ? best.a : L.fallback;
+}
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function rich(s){
+  var h = esc(s);
+  h = h.replace(/\[([^\]]+)\]\((https:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  h = h.replace(/([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-z]{2,})/g, '<a href="mailto:$1">$1</a>');
+  return h;
+}
+
+function add(text, who){
+  var d = document.createElement('div');
+  d.className = 'msg ' + who;
+  if (who === 'bot') d.innerHTML = rich(text); else d.textContent = text;
+  chat.appendChild(d);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function chips(){
+  var box = document.getElementById('chips');
+  box.innerHTML = '';
+  L.chips.forEach(function(c){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = c;
+    b.onclick = function(){ ask(c); };
+    box.appendChild(b);
+  });
+}
+
+function ask(text){
+  add(text,'me');
+  setTimeout(function(){ add(answer(text),'bot'); }, 280);
+}
+
+function paint(){
+  document.getElementById('hdr').textContent = L.hdr;
+  document.getElementById('lang').textContent = L.lang;
+  document.getElementById('q').placeholder = L.ph;
+  document.getElementById('send').textContent = L.send;
+  document.getElementById('foot').innerHTML = L.foot;
+  document.documentElement.lang = (L === ES) ? 'es' : 'en';
+  chat.innerHTML = '';
+  add(L.hello,'bot');
+  chips();
+}
+
+document.getElementById('lang').onclick = function(){
+  L = (L === EN) ? ES : EN;
+  paint();
+};
+
+document.getElementById('f').onsubmit = function(e){
+  e.preventDefault();
+  var v = document.getElementById('q').value.trim();
+  if (!v) return;
+  document.getElementById('q').value = '';
+  ask(v);
+};
+
+paint();
+</script>
+</body>
+</html>

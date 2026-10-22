@@ -11,6 +11,7 @@ Public Q&A chatbots for burnzozobra.com, produced by the Kiwanis Club of Santa F
 | Zozobra the Balloon | ask-zozobra-balloon.html |
 | Ask the Vendor Desk (vendors, all events) | ask-vendors.html |
 | Ask the Licensing Desk (Zozobra merchandise licensing) | ask-licensing.html |
+| Ask the Sponsor Desk (sponsorships, all events) | ask-sponsors.html |
 | Vendor Site Maps (all events; add #dia, #nye, #july4 or #zozobra) | vendor-maps.html |
 
 Each file is served by GitHub Pages at https://burnhim.github.io/zozobra-bots/<file> and loaded by the pop-up buttons on burnzozobra.com. Editing a file here updates the bot on the site; the addresses never change.
