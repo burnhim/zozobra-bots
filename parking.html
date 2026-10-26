@@ -139,7 +139,7 @@ function shift(ll, east_m, north_m){ return [ll[0]+north_m/111320, ll[1]+east_m/
 /* ---------- map ---------- */
 const sat = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:22, maxNativeZoom:19, attribution:"Imagery © Esri, Maxar, Earthstar Geographics"});
 const roads = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}",{maxZoom:22, maxNativeZoom:19, opacity:.9});
-const map = L.map("map",{layers:[sat,roads], zoomSnap:.25});
+const map = L.map("map",{layers:[sat,roads], zoomSnap:.25}).setView([35.6952,-105.9358], 18);
 map.attributionControl.setPrefix(false);
 const areaLayer = L.layerGroup().addTo(map), layer = L.layerGroup().addTo(map), labelLayer = L.layerGroup().addTo(map), editLayer = L.layerGroup().addTo(map);
 
