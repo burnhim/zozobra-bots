@@ -256,5 +256,18 @@ window.PARKING_SPACES = [
 {"id": "W26", "lot": "E", "area": "West side, north of Rendon Rd", "k": "oth", "ll": [35.6993682, -105.9362599], "rot": 359.3, "size": [18, 9]},
 {"id": "W27", "lot": "E", "area": "West side, north of Rendon Rd", "k": "oth", "ll": [35.6994175, -105.9362607], "rot": 359.3, "size": [18, 9]},
 {"id": "W28", "lot": "E", "area": "West side, north of Rendon Rd", "k": "oth", "ll": [35.6994667, -105.9362615], "rot": 359.3, "size": [18, 9]},
-{"id": "W29", "lot": "E", "area": "West side, north of Rendon Rd", "k": "oth", "ll": [35.699516, -105.9362623], "rot": 359.3, "size": [18, 9]}
+{"id": "W29", "lot": "E", "area": "West side, north of Rendon Rd", "k": "oth", "ll": [35.699516, -105.9362623], "rot": 359.3, "size": [18, 9]},
+{"id": "W30", "lot": "E", "area": "West side, south of Rendon Rd", "k": "oth", "ll": [35.6980052, -105.9362621], "rot": 5.6, "size": [18, 9]},
+{"id": "W31", "lot": "E", "area": "West side, south of Rendon Rd", "k": "oth", "ll": [35.6980542, -105.9362561], "rot": 5.6, "size": [18, 9]},
+{"id": "W32", "lot": "E", "area": "West side, south of Rendon Rd", "k": "oth", "ll": [35.6981033, -105.9362502], "rot": 5.6, "size": [18, 9]},
+{"id": "W33", "lot": "E", "area": "West side, south of Rendon Rd", "k": "oth", "ll": [35.6981523, -105.9362442], "rot": 5.6, "size": [18, 9]},
+{"id": "W34", "lot": "E", "area": "West side, south of Rendon Rd", "k": "oth", "ll": [35.6982014, -105.9362382], "rot": 5.6, "size": [18, 9]},
+{"id": "W35", "lot": "E", "area": "West side, south of Rendon Rd", "k": "oth", "ll": [35.6982504, -105.9362323], "rot": 5.6, "size": [18, 9]},
+{"id": "W36", "lot": "E", "area": "West side, south of Rendon Rd", "k": "oth", "ll": [35.6982995, -105.9362264], "rot": 5.6, "size": [18, 9]},
+{"id": "W37", "lot": "E", "area": "West side, south of Rendon Rd", "k": "oth", "ll": [35.6983485, -105.9362204], "rot": 5.6, "size": [18, 9]},
+{"id": "W38", "lot": "E", "area": "West side, south of Rendon Rd", "k": "oth", "ll": [35.6983915, -105.9362172], "rot": 358.3, "size": [18, 9]},
+{"id": "W39", "lot": "E", "area": "West side, south of Rendon Rd", "k": "oth", "ll": [35.6984408, -105.936219], "rot": 358.3, "size": [18, 9]},
+{"id": "W40", "lot": "E", "area": "West side, south of Rendon Rd", "k": "oth", "ll": [35.6984901, -105.9362208], "rot": 358.3, "size": [18, 9]},
+{"id": "W41", "lot": "E", "area": "West side, south of Rendon Rd", "k": "oth", "ll": [35.6985393, -105.9362227], "rot": 358.3, "size": [18, 9]},
+{"id": "W42", "lot": "E", "area": "West side, south of Rendon Rd", "k": "oth", "ll": [35.6985886, -105.9362245], "rot": 358.3, "size": [18, 9]}
 ];
