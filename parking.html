@@ -64,9 +64,10 @@ main{flex:1;display:flex;min-height:0;position:relative}
 #results.show{display:block}
 #results button{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:#fff;padding:8px 12px;cursor:pointer;font-size:17px}
 #results button b{color:var(--red)}
-#editbar{position:absolute;right:14px;top:14px;z-index:600;background:#fff4d6;border:2px solid var(--warn);border-radius:12px;padding:8px 12px;font-size:15px;max-width:330px;display:none}
+#editbar{position:absolute;right:14px;top:14px;z-index:600;background:#fff4d6;border:2px solid var(--warn);border-radius:12px;padding:10px 12px;font-size:16px;line-height:1.5;max-width:360px;display:none}
 #editbar.show{display:block}
-#editbar button{margin-top:6px}
+#editbar .ebtn{margin:4px 4px 0 0;padding:6px 10px;font-size:16px}
+#editbar .egrp{white-space:nowrap}
 @media (max-width:760px){
   header h1{font-size:21px}
   main{flex-direction:column}
@@ -82,6 +83,7 @@ main{flex:1;display:flex;min-height:0;position:relative}
   <nav class="tabs" id="tabs" aria-label="Lots"></nav>
   <div class="tools">
     <input id="q" type="search" placeholder="Find a name, plate or space" aria-label="Search">
+    <button id="editToggle" type="button">Edit layout</button>
     <button id="roster" type="button">Download roster</button>
     <a class="btn" id="sheetlink" href="https://docs.google.com/spreadsheets/d/1AXm9YveU1M64pZYLMQkp1KgFVgQ5NvIJMe18s_VqHGw/edit" target="_blank" rel="noopener">Open the sheet</a>
   </div>
@@ -103,7 +105,7 @@ main{flex:1;display:flex;min-height:0;position:relative}
 (function(){
 "use strict";
 const SPACES = window.PARKING_SPACES, LOTS = window.PARKING_LOTS, AREAS = window.PARKING_AREAS;
-const EDIT = /[?&]edit\b/.test(location.search);
+let EDIT = /[?&]edit\b/.test(location.search);
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/1AXm9YveU1M64pZYLMQkp1KgFVgQ5NvIJMe18s_VqHGw/edit";
 
 /* Kinds of space: colour sits on aerial imagery, so these are fixed. */
@@ -342,10 +344,39 @@ function select(id){
   showEdit();
 }
 function showEdit(){
-  const bar=document.getElementById("editbar"); if(!EDIT) return; bar.classList.add("show");
-  bar.innerHTML='<b>Edit mode.</b> Tap a space, then drag its marker. Arrow keys move '+(editSel?'<b>'+esc(editSel)+'</b>':'the whole <b>'+esc(currentLot)+'</b> lot')+' (Shift = 5 m), [ and ] rotate it, Esc deselects. <button type="button" class="btn" id="copylayout">Copy layout</button><span id="copymsg"></span>';
-  document.getElementById("copylayout").onclick=()=>{ const t=layoutJSON(); navigator.clipboard.writeText(t).then(()=>{ document.getElementById("copymsg").textContent=" Copied."; }).catch(()=>{ prompt("Copy this layout", t); }); };
+  const bar=document.getElementById("editbar"); if(!EDIT){ bar.classList.remove("show"); return; } bar.classList.add("show");
+  const B=(id,txt,title)=>'<button type="button" class="btn ebtn" id="'+id+'" title="'+(title||"")+'">'+txt+'</button>';
+  let h='<b>Edit layout.</b> ';
+  if(editSel){
+    const s=byId[editSel], same=SPACES.filter(x=>x.lot===s.lot && x.area===s.area).length;
+    h+='Space <b>'+esc(editSel)+'</b> · angle <b id="angle">'+Math.round(s.rot)+'°</b><br>'
+      +'<span class="egrp">Rotate: '+B("rl5","⟲ 5°")+B("rl1","⟲ 1°")+B("rr1","⟳ 1°")+B("rr5","⟳ 5°")+'</span><br>'
+      +'<span class="egrp">Nudge: '+B("nw","←")+B("nn","↑")+B("ns","↓")+B("ne","→")+' (2 ft; drag the pin for more)</span><br>'
+      +B("applyrow","Apply this angle to its whole row ("+same+" spaces)")+' '+B("desel","Done with this space");
+  } else {
+    h+='Tap a space to rotate or nudge it. '+B("rotlotl","⟲ lot 1°")+B("rotlotr","⟳ lot 1°")+' turns the whole <b>'+esc(currentLot)+'</b> lot.';
+  }
+  h+='<br>'+B("copylayout","Copy layout")+' '+B("editoff","Exit edit")+' <span id="copymsg"></span>';
+  bar.innerHTML=h;
+  const on=(id,fn)=>{ const el=document.getElementById(id); if(el) el.onclick=fn; };
+  const rot=d=>{ if(!editSel) return; moveSpace(byId[editSel],0,0,d); document.getElementById("angle").textContent=Math.round(byId[editSel].rot)+"°"; };
+  const nudge=(e,n)=>{ if(!editSel) return; moveSpace(byId[editSel],e,n,0); editLayer.clearLayers(); select(editSel); };
+  on("rl5",()=>rot(-5)); on("rl1",()=>rot(-1)); on("rr1",()=>rot(1)); on("rr5",()=>rot(5));
+  on("nw",()=>nudge(-0.6,0)); on("ne",()=>nudge(0.6,0)); on("nn",()=>nudge(0,0.6)); on("ns",()=>nudge(0,-0.6));
+  on("applyrow",()=>{ const s=byId[editSel]; SPACES.filter(x=>x.lot===s.lot && x.area===s.area).forEach(x=>{ x.rot=s.rot; shapes[x.id].setLatLngs(footprint(x.ll,x.size,x.rot)); }); document.getElementById("copymsg").textContent=" Row set to "+Math.round(s.rot)+"°."; });
+  on("desel",()=>{ shapes[editSel].setStyle(style(byId[editSel])); editSel=null; editLayer.clearLayers(); showEdit(); });
+  on("rotlotl",()=>moveLot(0,0,-1)); on("rotlotr",()=>moveLot(0,0,1));
+  on("copylayout",()=>{ const t=layoutJSON(); navigator.clipboard.writeText(t).then(()=>{ document.getElementById("copymsg").textContent=" Copied — paste it to Claude."; }).catch(()=>{ prompt("Copy this layout and paste it to Claude", t); }); });
+  on("editoff",()=>setEdit(false));
 }
+function setEdit(onoff){
+  EDIT=!!onoff; closePanel();
+  if(!EDIT){ if(editSel){ shapes[editSel].setStyle(style(byId[editSel])); } editSel=null; editLayer.clearLayers(); }
+  document.getElementById("editToggle").textContent = EDIT ? "Editing layout…" : "Edit layout";
+  document.getElementById("editToggle").classList.toggle("primary", EDIT);
+  showEdit();
+}
+document.getElementById("editToggle").onclick=()=>setEdit(!EDIT);
 function layoutJSON(){ const o={}; SPACES.forEach(s=>o[s.id]=[+s.ll[0].toFixed(7),+s.ll[1].toFixed(7),Math.round(s.rot*10)/10]); return JSON.stringify(o); }
 window.layoutJSON=layoutJSON;
 function moveSpace(s, e, n, rot){
@@ -365,10 +396,10 @@ function moveLot(e,n,rot){
   areaLayer.clearLayers(); AREAS.forEach(a=>L.polygon(a.poly,{color:a.color, weight:2, fillColor:a.color, fillOpacity:.25, dashArray:"4,4"}).addTo(areaLayer));
   refreshLabels();
 }
-if(EDIT){
-  showEdit();
+if(EDIT) setEdit(true);
+{
   document.addEventListener("keydown", e=>{
-    if(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA") return;
+    if(!EDIT || e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA") return;
     const step=e.shiftKey?5:0.5; let east=0,north=0,rot=0;
     if(e.key==="ArrowLeft") east=-step; else if(e.key==="ArrowRight") east=step; else if(e.key==="ArrowUp") north=step; else if(e.key==="ArrowDown") north=-step;
     else if(e.key==="[") rot=-(e.shiftKey?5:1); else if(e.key==="]") rot=(e.shiftKey?5:1);
