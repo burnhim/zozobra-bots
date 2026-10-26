@@ -340,7 +340,7 @@ function select(id){
   editSel=id; editLayer.clearLayers();
   const s=byId[id]; shapes[id].setStyle({weight:4,color:"#ffd43b"});
   const m=L.marker(s.ll,{draggable:true}).addTo(editLayer);
-  m.on("drag", e=>{ const p=e.target.getLatLng(); s.ll=[p.lat,p.lng]; shapes[id].setLatLngs(footprint(s.ll,s.size,s.rot)); });
+  m.on("drag", e=>{ const p=e.target.getLatLng(); s.ll=[p.lat,p.lng]; shapes[id].setLatLngs(footprint(s.ll,s.size,s.rot)); if(!labelTick){ labelTick=true; requestAnimationFrame(()=>{ labelTick=false; refreshLabels(); }); } });
   m.on("dragend", ()=>{ refreshLabels(); showEdit(); });
   showEdit();
 }
@@ -390,9 +390,11 @@ function setEdit(onoff){
 document.getElementById("editToggle").onclick=()=>setEdit(!EDIT);
 function layoutJSON(){ const o={}; SPACES.forEach(s=>o[s.id]=[+s.ll[0].toFixed(7),+s.ll[1].toFixed(7),Math.round(s.rot*10)/10]); return JSON.stringify(o); }
 window.layoutJSON=layoutJSON;
+let labelTick=false;
 function moveSpace(s, e, n, rot){
   if(rot){ s.rot=(s.rot+rot+360)%360; } else s.ll=shift(s.ll,e,n);
   shapes[s.id].setLatLngs(footprint(s.ll,s.size,s.rot));
+  if(!labelTick){ labelTick=true; requestAnimationFrame(()=>{ labelTick=false; refreshLabels(); }); }
 }
 function moveLot(e,n,rot){
   const sp=lotSpaces(currentLot); if(!sp.length) return;
