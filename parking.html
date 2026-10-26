@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Zozobra 103 · Parking desk</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{
+  --ink:#1e1a17; --muted:#5d554d; --paper:#fffdf8; --line:#e2d9cc; --red:#b42318; --red-dark:#7a1510;
+  --ok:#2b8a3e; --warn:#f08c00; --panel:#ffffff;
+  --fs:19px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:var(--fs);line-height:1.4;color:var(--ink);background:var(--paper);display:flex;flex-direction:column;height:100vh;height:100dvh}
+button,input,select,textarea{font:inherit;color:inherit}
+header{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);background:#fff}
+header h1{font-size:24px;line-height:1.2;margin:0;font-weight:800}
+header h1 small{display:block;font-size:15px;font-weight:600;color:var(--muted)}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tabs button{border:2px solid var(--line);background:#fff;border-radius:999px;padding:6px 14px;font-weight:700;cursor:pointer;font-size:17px}
+.tabs button[aria-selected="true"]{background:var(--red);border-color:var(--red);color:#fff}
+.tabs button .n{font-weight:600;opacity:.8;font-size:15px;margin-left:6px}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;align-items:center}
+.tools input{border:2px solid var(--line);border-radius:10px;padding:7px 12px;min-width:220px;font-size:17px}
+.tools button,.btn{border:2px solid var(--red);background:#fff;color:var(--red);border-radius:10px;padding:7px 12px;font-weight:700;cursor:pointer;font-size:17px;text-decoration:none;display:inline-block}
+.tools button.primary,.btn.primary{background:var(--red);color:#fff}
+main{flex:1;display:flex;min-height:0;position:relative}
+#map{flex:1;min-height:0;background:#d9d2c7}
+#panel{width:390px;max-width:100%;background:var(--panel);border-left:1px solid var(--line);overflow:auto;padding:16px;display:none;flex-direction:column;gap:10px}
+#panel.open{display:flex}
+#panel h2{margin:0;font-size:26px;line-height:1.15;font-weight:800}
+#panel .where{color:var(--muted);font-size:17px}
+#panel label{display:block;font-weight:700;font-size:17px;margin-top:4px}
+#panel input,#panel select,#panel textarea{width:100%;border:2px solid var(--line);border-radius:10px;padding:8px 10px;font-size:19px;background:#fff}
+#panel textarea{min-height:70px}
+#panel .row{display:flex;gap:8px}
+#panel .row>*{flex:1;min-width:0}
+#panel .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+#panel .actions button{flex:1;border:2px solid var(--red);background:#fff;color:var(--red);border-radius:10px;padding:10px;font-weight:800;cursor:pointer;font-size:18px}
+#panel .actions button.primary{background:var(--red);color:#fff}
+#panel .actions button.quiet{border-color:var(--line);color:var(--muted)}
+#panel .msg{font-size:17px;color:var(--muted);min-height:1.3em}
+#panel .msg.err{color:var(--red);font-weight:700}
+#panel .meta{font-size:15px;color:var(--muted);border-top:1px solid var(--line);padding-top:8px}
+.closex{margin-left:auto;border:0;background:none;font-size:28px;line-height:1;cursor:pointer;color:var(--muted)}
+.legend{position:absolute;left:10px;bottom:28px;z-index:500;background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:15px;line-height:1.5;max-width:260px}
+.legend b{display:block;font-size:16px}
+.legend span{display:inline-flex;align-items:center;gap:6px;margin-right:10px;white-space:nowrap}
+.legend i{display:inline-block;width:18px;height:12px;border-radius:3px;border:2px solid #333}
+.sp-label{background:rgba(255,255,255,.92);border:1px solid #333;border-radius:4px;padding:1px 5px;font-size:13px;font-weight:800;color:#1e1a17;white-space:nowrap;box-shadow:none}
+.sp-label.assigned{background:#1e1a17;color:#fff;border-color:#1e1a17}
+.sp-label::before{display:none}
+#gate{position:absolute;inset:0;z-index:1000;background:var(--paper);display:flex;align-items:center;justify-content:center;padding:24px;text-align:center}
+#gate div{max-width:560px}
+#gate h2{font-size:28px;margin:0 0 10px}
+#gate p{margin:0 0 14px;font-size:19px;color:var(--muted)}
+#gate input{border:2px solid var(--line);border-radius:10px;padding:10px 12px;font-size:20px;width:100%;max-width:360px}
+#gate button{margin-top:10px}
+#results{position:absolute;left:14px;top:14px;z-index:600;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.15);max-width:380px;max-height:50%;overflow:auto;display:none}
+#results.show{display:block}
+#results button{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:#fff;padding:8px 12px;cursor:pointer;font-size:17px}
+#results button b{color:var(--red)}
+#editbar{position:absolute;right:14px;top:14px;z-index:600;background:#fff4d6;border:2px solid var(--warn);border-radius:12px;padding:8px 12px;font-size:15px;max-width:330px;display:none}
+#editbar.show{display:block}
+#editbar button{margin-top:6px}
+@media (max-width:760px){
+  header h1{font-size:21px}
+  main{flex-direction:column}
+  #panel{width:100%;border-left:0;border-top:2px solid var(--line);max-height:62%;}
+  .legend{display:none}
+  .tools input{min-width:140px;flex:1}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Parking desk <small>103rd Burning of Zozobra · Friday, September 3, 2027</small></h1>
+  <nav class="tabs" id="tabs" aria-label="Lots"></nav>
+  <div class="tools">
+    <input id="q" type="search" placeholder="Find a name, plate or space" aria-label="Search">
+    <button id="roster" type="button">Download roster</button>
+    <a class="btn" id="sheetlink" href="https://docs.google.com/spreadsheets/d/1AXm9YveU1M64pZYLMQkp1KgFVgQ5NvIJMe18s_VqHGw/edit" target="_blank" rel="noopener">Open the sheet</a>
+  </div>
+</header>
+<main>
+  <div id="map" role="application" aria-label="Parking map"></div>
+  <div id="results"></div>
+  <div id="editbar"></div>
+  <div class="legend" id="legend"></div>
+  <aside id="panel" aria-live="polite"></aside>
+  <div id="gate" hidden><div>
+    <h2>Zozobra parking desk</h2>
+    <p id="gatemsg">Open this page from the private parking page on burnzozobra.com.</p>
+  </div></div>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="parking-data.js"></script>
+<script>
+(function(){
+"use strict";
+const SPACES = window.PARKING_SPACES, LOTS = window.PARKING_LOTS, AREAS = window.PARKING_AREAS;
+const EDIT = /[?&]edit\b/.test(location.search);
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/1AXm9YveU1M64pZYLMQkp1KgFVgQ5NvIJMe18s_VqHGw/edit";
+
+/* Kinds of space: colour sits on aerial imagery, so these are fixed. */
+const KIND = {
+  general:{label:"General (department heads)", color:"#2b8a3e"},
+  bollards:{label:"Behind the bollards", color:"#e03131"},
+  city:{label:"City Environment units", color:"#e64980"},
+  drone:{label:"Drone company", color:"#fcc419"},
+  entertainment:{label:"Entertainment headliner", color:"#7048e8"},
+  vendor:{label:"Vendor food trucks (vendor program)", color:"#fd7e14"},
+  vendorpark:{label:"Vendor parking", color:"#2b8a3e"},
+  merch:{label:"Kiwanis merchandise", color:"#e03131"},
+  police:{label:"Police", color:"#1c7ed6"},
+  stroller:{label:"Stroller and bike vendor", color:"#fcc419"},
+  volunteer:{label:"Volunteers", color:"#e03131"},
+  oth:{label:"Old Taos Highway, parallel", color:"#1098ad"}
+};
+const STATUSES = ["Open","Assigned","Reserved","Vendor program","Blocked"];
+const ROLES = ["Department head","Volunteer","Vendor","Police","City staff","Catering","Entertainment","Drone company","Media","Kiwanis","Other"];
+const WHENS = ["Burn day","Setup day","Both"];
+const FIELDS = [["name","Name"],["role","Role"],["org","Organization or department"],["vehicle","Vehicle (make, model, color)"],["plate","Plate"],["cell","Cell"],["pass","Pass #"],["when","When"],["notes","Notes"]];
+
+/* ---------- geometry ---------- */
+const FT=0.3048;
+function footprint(ll, size, bearing){
+  const L2=size[0]*FT/2, W2=size[1]*FT/2, t=bearing*Math.PI/180;
+  const ux=Math.sin(t), uy=Math.cos(t), vx=Math.cos(t), vy=-Math.sin(t);
+  const mLat=111320, mLng=111320*Math.cos(ll[0]*Math.PI/180);
+  return [[1,1],[1,-1],[-1,-1],[-1,1]].map(([a,b])=>{ const e=a*L2*ux+b*W2*vx, n=a*L2*uy+b*W2*vy; return [ll[0]+n/mLat, ll[1]+e/mLng]; });
+}
+function shift(ll, east_m, north_m){ return [ll[0]+north_m/111320, ll[1]+east_m/(111320*Math.cos(ll[0]*Math.PI/180))]; }
+
+/* ---------- map ---------- */
+const sat = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:22, maxNativeZoom:19, attribution:"Imagery © Esri, Maxar, Earthstar Geographics"});
+const roads = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}",{maxZoom:22, maxNativeZoom:19, opacity:.9});
+const map = L.map("map",{layers:[sat,roads], zoomSnap:.25});
+map.attributionControl.setPrefix(false);
+const areaLayer = L.layerGroup().addTo(map), layer = L.layerGroup().addTo(map), labelLayer = L.layerGroup().addTo(map), editLayer = L.layerGroup().addTo(map);
+
+/* ---------- state ---------- */
+let cfg = null;                 // {endpoint, key, user}
+let data = {};                  // data[ID] = {status,name,role,org,vehicle,plate,cell,pass,when,notes,updated,by}
+const shapes = {};              // shapes[ID] = L.polygon
+let currentLot = "A", selected = null;
+const byId = {}; SPACES.forEach(s=>byId[s.id]=s);
+
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function rec(id){ return data[id] || {status:"Open"}; }
+function isAssignable(s){ return s.k!=="vendor"; }
+function style(s){
+  const r=rec(s.id), c=KIND[s.k].color;
+  if(r.status==="Assigned") return {color:"#111", weight:2, fillColor:c, fillOpacity:.9};
+  if(r.status==="Reserved") return {color:"#111", weight:2, dashArray:"5,4", fillColor:c, fillOpacity:.55};
+  if(r.status==="Blocked") return {color:"#333", weight:2, fillColor:"#868e96", fillOpacity:.7};
+  if(r.status==="Vendor program" || s.k==="vendor") return {color:"#fff", weight:2, fillColor:c, fillOpacity:.45};
+  return {color:c, weight:2, fillColor:"#fff", fillOpacity:.35};
+}
+function labelFor(s){
+  const r=rec(s.id);
+  const who = r.status==="Assigned" ? (r.name||r.org||"") : (r.status==="Reserved" && r.name ? r.name : "");
+  return who ? s.id+" · "+who : s.id;
+}
+
+function drawAll(){
+  layer.clearLayers(); labelLayer.clearLayers(); areaLayer.clearLayers();
+  AREAS.forEach(a=>L.polygon(a.poly,{color:a.color, weight:2, fillColor:a.color, fillOpacity:.25, dashArray:"4,4"}).bindTooltip(a.t,{direction:"center", className:"sp-label", permanent:false}).addTo(areaLayer));
+  SPACES.forEach(s=>{
+    const p=L.polygon(footprint(s.ll, s.size, s.rot), style(s)).addTo(layer);
+    p.on("click", ()=>{ if(EDIT){ select(s.id); return; } open(s.id); });
+    shapes[s.id]=p;
+  });
+  refreshLabels();
+  refreshTabs();
+}
+function refreshLabels(){
+  labelLayer.clearLayers();
+  const z=map.getZoom(); if(z<18.5) return;
+  const b=map.getBounds();
+  SPACES.forEach(s=>{
+    if(!b.contains(s.ll)) return;
+    const r=rec(s.id), assigned=r.status==="Assigned";
+    if(z<19.5 && !assigned) return;
+    L.tooltip({permanent:true, direction:"center", className:"sp-label"+(assigned?" assigned":""), interactive:true, opacity:1})
+      .setLatLng(s.ll).setContent(esc(z<19.5?s.id:labelFor(s))).addTo(labelLayer)
+      .on("click", ()=>{ if(EDIT){ select(s.id); return; } open(s.id); });
+  });
+}
+function restyle(id){ if(shapes[id]) shapes[id].setStyle(style(byId[id])); refreshLabels(); refreshTabs(); }
+map.on("zoomend moveend", refreshLabels);
+
+/* ---------- lots and tabs ---------- */
+function lotSpaces(id){ return id==="ALL" ? SPACES : SPACES.filter(s=>s.lot===id || (id==="B" && (s.lot==="C"||s.lot==="P"))); }
+function counts(id){
+  const sp=lotSpaces(id).filter(isAssignable);
+  const open=sp.filter(s=>rec(s.id).status==="Open").length, assigned=sp.filter(s=>rec(s.id).status==="Assigned").length;
+  return {open, assigned, total:sp.length};
+}
+const TABS=[["ALL","All lots"],["A","Lot A · Tennis court"],["B","Lots B, C and police · Complex"],["D","Lot D · Montezuma"],["E","Lot E · Old Taos Hwy"]];
+function refreshTabs(){
+  const nav=document.getElementById("tabs"); nav.innerHTML="";
+  TABS.forEach(([id,name])=>{
+    const c=counts(id), b=document.createElement("button");
+    b.type="button"; b.setAttribute("role","tab"); b.setAttribute("aria-selected", String(id===currentLot));
+    b.innerHTML=esc(name)+'<span class="n">'+c.open+' open</span>';
+    b.onclick=()=>goLot(id);
+    nav.appendChild(b);
+  });
+}
+function goLot(id){
+  currentLot=id; refreshTabs();
+  const pts=lotSpaces(id).map(s=>s.ll); if(!pts.length) return;
+  map.fitBounds(L.latLngBounds(pts).pad(id==="ALL"?.12:.25), {animate:true, maxZoom: id==="E"?18:20});
+}
+
+/* ---------- legend ---------- */
+(function(){
+  const lg=document.getElementById("legend"); let h='<b>Colours</b>';
+  const seen=new Set();
+  ["general","bollards","city","drone","entertainment","vendor","vendorpark","merch","police","stroller","volunteer","oth"].forEach(k=>{ if(seen.has(KIND[k].label)) return; seen.add(KIND[k].label); h+='<span><i style="background:'+KIND[k].color+'"></i>'+esc(KIND[k].label)+'</span>'; });
+  h+='<br><b>Fill</b><span><i style="background:#fff"></i>Open</span><span><i style="background:#333"></i>Assigned</span><span><i style="background:#999;border-style:dashed"></i>Reserved</span>';
+  lg.innerHTML=h;
+})();
+
+/* ---------- panel ---------- */
+const panel=document.getElementById("panel");
+function open(id){
+  const s=byId[id], r=rec(id); selected=id;
+  const k=KIND[s.k];
+  let h='<div style="display:flex;align-items:flex-start;gap:8px"><div><h2>Space '+esc(id)+'</h2><div class="where">'+esc(lotName(s.lot))+'<br>'+esc(s.area)+' · '+esc(k.label)+'</div></div><button class="closex" type="button" aria-label="Close" id="pclose">×</button></div>';
+  if(!isAssignable(s)){
+    h+='<p>This is a vendor food-truck space. It is assigned through the vendor program and the vendor map, not here.</p>';
+    panel.innerHTML=h; panel.classList.add("open"); document.getElementById("pclose").onclick=closePanel; return;
+  }
+  h+='<label for="f_status">Status</label><select id="f_status">'+STATUSES.filter(x=>x!=="Vendor program").map(x=>'<option'+(x===(r.status||"Open")?" selected":"")+'>'+x+'</option>').join("")+'</select>';
+  FIELDS.forEach(([f,lbl])=>{
+    if(f==="role") h+='<label for="f_role">Role</label><input id="f_role" list="roles" value="'+esc(r.role)+'"><datalist id="roles">'+ROLES.map(x=>'<option value="'+esc(x)+'">').join("")+'</datalist>';
+    else if(f==="when") h+='<label for="f_when">When</label><select id="f_when"><option value="">—</option>'+WHENS.map(x=>'<option'+(x===r.when?" selected":"")+'>'+x+'</option>').join("")+'</select>';
+    else if(f==="notes") h+='<label for="f_notes">Notes</label><textarea id="f_notes">'+esc(r.notes)+'</textarea>';
+    else h+='<label for="f_'+f+'">'+lbl+'</label><input id="f_'+f+'" value="'+esc(r[f])+'"'+(f==="cell"?' type="tel" inputmode="tel"':"")+'>';
+  });
+  h+='<div class="actions"><button type="button" class="primary" id="psave">Save</button><button type="button" id="prelease">Release space</button><button type="button" class="quiet" id="pcancel">Cancel</button></div><div class="msg" id="pmsg"></div>';
+  if(r.updated) h+='<div class="meta">Last saved '+esc(r.updated)+(r.by?' by '+esc(r.by):'')+'</div>';
+  panel.innerHTML=h; panel.classList.add("open");
+  document.getElementById("pclose").onclick=closePanel; document.getElementById("pcancel").onclick=closePanel;
+  document.getElementById("psave").onclick=()=>save(id);
+  document.getElementById("prelease").onclick=()=>release(id);
+  document.getElementById("f_name").addEventListener("input", e=>{ const st=document.getElementById("f_status"); if(e.target.value.trim() && st.value==="Open") st.value="Assigned"; });
+  shapes[id].setStyle({weight:4, color:"#ffd43b"});
+  map.panInside(L.latLng(s.ll), {padding:[40,40]});
+  setTimeout(()=>document.getElementById("f_name").focus(), 50);
+}
+function closePanel(){ if(selected && shapes[selected]) shapes[selected].setStyle(style(byId[selected])); selected=null; panel.classList.remove("open"); panel.innerHTML=""; }
+function lotName(l){ const x=LOTS.find(o=>o.id===l); return x?x.name:l; }
+function msg(t, err){ const m=document.getElementById("pmsg"); if(m){ m.textContent=t; m.className="msg"+(err?" err":""); } }
+function fieldsFromPanel(){
+  const f={status:document.getElementById("f_status").value};
+  FIELDS.forEach(([k])=>{ f[k]=(document.getElementById("f_"+k).value||"").trim(); });
+  if(f.status==="Assigned" && !f.name && !f.org) throw new Error("Give a name or an organization before marking the space Assigned.");
+  return f;
+}
+async function save(id){
+  let f; try{ f=fieldsFromPanel(); }catch(e){ msg(e.message, true); return; }
+  msg("Saving…");
+  try{
+    const res=await call({action:"save", space:id, fields:f});
+    data[id]=res.space; restyle(id); msg("Saved."); open(id);
+  }catch(e){ msg("Couldn't save: "+e.message, true); }
+}
+async function release(id){
+  if(!confirm("Release space "+id+"? Its details will be cleared.")) return;
+  msg("Releasing…");
+  try{ const res=await call({action:"release", space:id}); data[id]=res.space; restyle(id); closePanel(); }
+  catch(e){ msg("Couldn't release: "+e.message, true); }
+}
+
+/* ---------- endpoint ---------- */
+async function call(body){
+  if(!cfg) throw new Error("not connected");
+  body.key=cfg.key; body.by=cfg.user||"";
+  const r=await fetch(cfg.endpoint, {method:"POST", body:JSON.stringify(body), headers:{"Content-Type":"text/plain;charset=utf-8"}, redirect:"follow"});
+  const j=await r.json(); if(!j.ok) throw new Error(j.error||"unknown error"); return j;
+}
+async function load(){
+  if(!cfg) return;
+  try{
+    const r=await fetch(cfg.endpoint+"?key="+encodeURIComponent(cfg.key)+"&action=list&t="+Date.now(), {cache:"no-store", redirect:"follow"});
+    const j=await r.json(); if(!j.ok) throw new Error(j.error||"unknown error");
+    data=j.spaces||{}; SPACES.forEach(s=>restyleQuiet(s.id)); refreshLabels(); refreshTabs();
+    document.getElementById("gate").hidden=true;
+  }catch(e){ gate("Couldn't reach the parking sheet: "+e.message); }
+}
+function restyleQuiet(id){ if(shapes[id]) shapes[id].setStyle(style(byId[id])); }
+function gate(text){ const g=document.getElementById("gate"); g.hidden=false; document.getElementById("gatemsg").textContent=text; }
+
+/* Config comes from the burnzozobra.com page that embeds this map. */
+window.addEventListener("message", e=>{
+  const d=e.data; if(!d || d.source!=="zozobra-parking-host" || !d.endpoint || !d.key) return;
+  cfg={endpoint:d.endpoint, key:d.key, user:d.user||""}; load();
+});
+if(window.parent!==window) window.parent.postMessage({source:"zozobra-parking-map", ready:true}, "*");
+setTimeout(()=>{ if(!cfg && !EDIT) gate("Open this page from the private parking page on burnzozobra.com."); }, 2500);
+/* Refresh assignments every two minutes so two people can work at once. */
+setInterval(()=>{ if(cfg && !selected) load(); }, 120000);
+
+/* ---------- search ---------- */
+const q=document.getElementById("q"), results=document.getElementById("results");
+function search(){
+  const t=q.value.trim().toLowerCase(); results.innerHTML="";
+  if(!t){ results.classList.remove("show"); return; }
+  const hits=SPACES.filter(s=>{ const r=rec(s.id); return s.id.toLowerCase().startsWith(t) || [r.name,r.org,r.plate,r.vehicle,r.notes].some(v=>v && String(v).toLowerCase().includes(t)); }).slice(0,30);
+  if(!hits.length){ results.innerHTML='<button type="button" disabled>No match</button>'; results.classList.add("show"); return; }
+  hits.forEach(s=>{ const r=rec(s.id), b=document.createElement("button"); b.type="button"; b.innerHTML='<b>'+esc(s.id)+'</b> · '+esc(r.status||"Open")+(r.name?' · '+esc(r.name):'')+(r.plate?' · '+esc(r.plate):'')+'<br><small>'+esc(lotName(s.lot))+'</small>';
+    b.onclick=()=>{ results.classList.remove("show"); map.setView(s.ll, 20); open(s.id); }; results.appendChild(b); });
+  results.classList.add("show");
+}
+q.addEventListener("input", search); q.addEventListener("keydown", e=>{ if(e.key==="Escape"){ q.value=""; search(); } });
+document.addEventListener("click", e=>{ if(!results.contains(e.target) && e.target!==q) results.classList.remove("show"); });
+
+/* ---------- roster download ---------- */
+document.getElementById("roster").onclick=()=>{
+  const cols=["Space","Lot","Area","Type","Status","Name","Role","Organization or department","Vehicle","Plate","Cell","Pass #","When","Notes","Updated","Updated by"];
+  const rows=[cols];
+  SPACES.filter(s=>rec(s.id).status==="Assigned"||rec(s.id).status==="Reserved").forEach(s=>{ const r=rec(s.id); rows.push([s.id,lotName(s.lot),s.area,KIND[s.k].label,r.status,r.name,r.role,r.org,r.vehicle,r.plate,r.cell,r.pass,r.when,r.notes,r.updated,r.by].map(v=>v==null?"":v)); });
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\r\n");
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob(["﻿"+csv],{type:"text/csv"})); a.download="Zozobra 103 – Parking roster.csv"; a.click();
+};
+
+/* ---------- edit mode: drag a space, or nudge a whole lot, then copy the layout ---------- */
+let editSel=null;
+function select(id){
+  editSel=id; editLayer.clearLayers();
+  const s=byId[id]; shapes[id].setStyle({weight:4,color:"#ffd43b"});
+  const m=L.marker(s.ll,{draggable:true}).addTo(editLayer);
+  m.on("drag", e=>{ const p=e.target.getLatLng(); s.ll=[p.lat,p.lng]; shapes[id].setLatLngs(footprint(s.ll,s.size,s.rot)); });
+  m.on("dragend", ()=>{ refreshLabels(); showEdit(); });
+  showEdit();
+}
+function showEdit(){
+  const bar=document.getElementById("editbar"); if(!EDIT) return; bar.classList.add("show");
+  bar.innerHTML='<b>Edit mode.</b> Tap a space, then drag its marker. Arrow keys move '+(editSel?'<b>'+esc(editSel)+'</b>':'the whole <b>'+esc(currentLot)+'</b> lot')+' (Shift = 5 m), [ and ] rotate it, Esc deselects. <button type="button" class="btn" id="copylayout">Copy layout</button><span id="copymsg"></span>';
+  document.getElementById("copylayout").onclick=()=>{ const t=layoutJSON(); navigator.clipboard.writeText(t).then(()=>{ document.getElementById("copymsg").textContent=" Copied."; }).catch(()=>{ prompt("Copy this layout", t); }); };
+}
+function layoutJSON(){ const o={}; SPACES.forEach(s=>o[s.id]=[+s.ll[0].toFixed(7),+s.ll[1].toFixed(7),Math.round(s.rot*10)/10]); return JSON.stringify(o); }
+window.layoutJSON=layoutJSON;
+function moveSpace(s, e, n, rot){
+  if(rot){ s.rot=(s.rot+rot+360)%360; } else s.ll=shift(s.ll,e,n);
+  shapes[s.id].setLatLngs(footprint(s.ll,s.size,s.rot));
+}
+function moveLot(e,n,rot){
+  const sp=lotSpaces(currentLot); if(!sp.length) return;
+  if(rot){
+    const c=[sp.reduce((a,s)=>a+s.ll[0],0)/sp.length, sp.reduce((a,s)=>a+s.ll[1],0)/sp.length], t=rot*Math.PI/180, mLng=111320*Math.cos(c[0]*Math.PI/180);
+    sp.forEach(s=>{ const x=(s.ll[1]-c[1])*mLng, y=(s.ll[0]-c[0])*111320; const x2=x*Math.cos(t)+y*Math.sin(t), y2=-x*Math.sin(t)+y*Math.cos(t); s.ll=[c[0]+y2/111320, c[1]+x2/mLng]; s.rot=(s.rot+rot+360)%360; shapes[s.id].setLatLngs(footprint(s.ll,s.size,s.rot)); });
+    AREAS.filter(a=>a.lot===currentLot).forEach(a=>{ a.poly=a.poly.map(p=>{ const x=(p[1]-c[1])*mLng, y=(p[0]-c[0])*111320; const x2=x*Math.cos(t)+y*Math.sin(t), y2=-x*Math.sin(t)+y*Math.cos(t); return [c[0]+y2/111320, c[1]+x2/mLng]; }); });
+  } else {
+    sp.forEach(s=>moveSpace(s,e,n,0));
+    AREAS.filter(a=>a.lot===currentLot).forEach(a=>{ a.poly=a.poly.map(p=>shift(p,e,n)); });
+  }
+  areaLayer.clearLayers(); AREAS.forEach(a=>L.polygon(a.poly,{color:a.color, weight:2, fillColor:a.color, fillOpacity:.25, dashArray:"4,4"}).addTo(areaLayer));
+  refreshLabels();
+}
+if(EDIT){
+  showEdit();
+  document.addEventListener("keydown", e=>{
+    if(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA") return;
+    const step=e.shiftKey?5:0.5; let east=0,north=0,rot=0;
+    if(e.key==="ArrowLeft") east=-step; else if(e.key==="ArrowRight") east=step; else if(e.key==="ArrowUp") north=step; else if(e.key==="ArrowDown") north=-step;
+    else if(e.key==="[") rot=-(e.shiftKey?5:1); else if(e.key==="]") rot=(e.shiftKey?5:1);
+    else if(e.key==="Escape"){ if(editSel){ shapes[editSel].setStyle(style(byId[editSel])); } editSel=null; editLayer.clearLayers(); showEdit(); return; }
+    else return;
+    e.preventDefault();
+    if(editSel){ moveSpace(byId[editSel],east,north,rot); editLayer.clearLayers(); select(editSel); }
+    else moveLot(east,north,rot);
+  });
+}
+window.PARKING_API = { moveLot, moveSpace:(id,e,n,r)=>moveSpace(byId[id],e,n,r), goLot, setConfig:(c)=>{cfg=c; load();}, spaces:SPACES };
+
+/* ---------- start ---------- */
+drawAll();
+goLot(/[?&]lot=([A-Z]+)/.test(location.search) ? RegExp.$1 : "A");
+})();
+</script>
+</body>
+</html>
