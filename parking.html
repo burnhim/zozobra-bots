@@ -46,10 +46,12 @@ main{flex:1;display:flex;min-height:0;position:relative}
 #panel .msg.err{color:var(--red);font-weight:700}
 #panel .meta{font-size:15px;color:var(--muted);border-top:1px solid var(--line);padding-top:8px}
 .closex{margin-left:auto;border:0;background:none;font-size:28px;line-height:1;cursor:pointer;color:var(--muted)}
-.legend{position:absolute;left:10px;bottom:28px;z-index:500;background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:15px;line-height:1.5;max-width:260px}
-.legend b{display:block;font-size:16px}
-.legend span{display:inline-flex;align-items:center;gap:6px;margin-right:10px;white-space:nowrap}
-.legend i{display:inline-block;width:18px;height:12px;border-radius:3px;border:2px solid #333}
+.legend{position:absolute;left:10px;bottom:28px;z-index:500;background:rgba(255,255,255,.95);border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-size:16px;font-weight:700;line-height:1.5;width:300px;max-width:calc(100% - 20px);box-sizing:border-box}
+.legend b{display:block;font-size:17px;margin:2px 0}
+.legend span{display:flex;align-items:center;gap:8px;margin:0;white-space:normal}
+.legend .fillrow{display:flex;flex-wrap:wrap;gap:4px 14px}
+.legend .fillrow span{display:inline-flex}
+.legend i{flex:none;display:inline-block;width:20px;height:13px;border-radius:3px;border:2px solid #333}
 .sp-label{background:rgba(255,255,255,.92);border:1px solid #333;border-radius:4px;padding:1px 5px;font-size:13px;font-weight:800;color:#1e1a17;white-space:nowrap;box-shadow:none}
 .sp-label.assigned{background:#1e1a17;color:#fff;border-color:#1e1a17}
 .sp-label::before{display:none}
@@ -155,12 +157,12 @@ const byId = {}; SPACES.forEach(s=>byId[s.id]=s);
 
 function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 function rec(id){ return data[id] || {status:"Open"}; }
-function isAssignable(s){ return s.k!=="vendor"; }
+function isAssignable(s){ return s.k!=="vendor" && !s.na; }
 function style(s){
   const r=rec(s.id), c=KIND[s.k].color;
+  if(s.na || r.status==="Blocked") return {color:"#000", weight:3, fillColor:"#000", fillOpacity:.12};
   if(r.status==="Assigned") return {color:"#111", weight:2, fillColor:c, fillOpacity:.9};
   if(r.status==="Reserved") return {color:"#111", weight:2, dashArray:"5,4", fillColor:c, fillOpacity:.55};
-  if(r.status==="Blocked") return {color:"#333", weight:2, fillColor:"#868e96", fillOpacity:.7};
   if(r.status==="Vendor program" || s.k==="vendor") return {color:"#fff", weight:2, fillColor:c, fillOpacity:.45};
   return {color:c, weight:2, fillColor:"#fff", fillOpacity:.35};
 }
@@ -226,7 +228,7 @@ function goLot(id){
   const lg=document.getElementById("legend"); let h='<b>Colours</b>';
   const seen=new Set();
   ["general","bollards","city","drone","entertainment","vendor","vendorpark","merch","police","stroller","volunteer","oth"].forEach(k=>{ if(seen.has(KIND[k].label)) return; seen.add(KIND[k].label); h+='<span><i style="background:'+KIND[k].color+'"></i>'+esc(KIND[k].label)+'</span>'; });
-  h+='<br><b>Fill</b><span><i style="background:#fff"></i>Open</span><span><i style="background:#333"></i>Assigned</span><span><i style="background:#999;border-style:dashed"></i>Reserved</span>';
+  h+='<b>Fill</b><div class="fillrow"><span><i style="background:#fff"></i>Open</span><span><i style="background:#333"></i>Assigned</span><span><i style="background:#999;border-style:dashed"></i>Reserved</span><span><i style="background:#fff;border:3px solid #000"></i>Not available</span></div>';
   lg.innerHTML=h;
 })();
 
@@ -355,7 +357,7 @@ function showEdit(){
       +'<span class="egrp">Nudge this space: '+B("nw","←")+B("nn","↑")+B("ns","↓")+B("ne","→")+' (2 ft; drag the pin for more)</span><br>'
       +'<span class="egrp">Move whole row ('+same+'): '+B("rw","←")+B("rn","↑")+B("rs","↓")+B("re","→")+' 2 ft · '+B("rw5","⇐")+B("rn5","⇑")+B("rs5","⇓")+B("re5","⇒")+' 10 ft</span><br>'
       +B("applyrow","Apply this angle to the row")+' '+B("snaprow","Slide the row to where this space is")+' '+B("straight","Straighten the row")+'<br>'
-      +B("addsp","＋ Add a space after this one")+' '+B("delsp","－ Remove this space")+' '+B("desel","Done with this space");
+      +B("addsp","＋ Add a space after this one")+' '+B("delsp","－ Remove this space")+' '+B("navail", s.na ? "Mark available again" : "Mark not available")+' '+B("desel","Done with this space");
   } else {
     h+='Tap a space to rotate or nudge it. '+B("rotlotl","⟲ lot 1°")+B("rotlotr","⟳ lot 1°")+' turns the whole <b>'+esc(currentLot)+'</b> lot.';
   }
@@ -386,6 +388,7 @@ function showEdit(){
     SPACES.splice(SPACES.indexOf(s)+1,0,ns); byId[ns.id]=ns;
     const poly=L.polygon(footprint(ns.ll,ns.size,ns.rot), style(ns)).addTo(layer); poly.on("click",()=>{ if(EDIT){ select(ns.id); return; } open(ns.id); }); shapes[ns.id]=poly;
     refreshLabels(); refreshTabs(); select(ns.id); document.getElementById("copymsg").textContent=" Added "+ns.id+"."; });
+  on("navail",()=>{ const s=byId[editSel]; s.na=!s.na; shapes[s.id].setStyle(style(s)); shapes[s.id].setStyle({weight:4,color:"#ffd43b"}); refreshTabs(); showEdit(); document.getElementById("copymsg").textContent=" "+s.id+(s.na?" marked not available.":" available again."); });
   on("delsp",()=>{ const s=byId[editSel]; if(!confirm("Remove space "+s.id+" from the layout?")) return;
     removed.push(s.id); SPACES.splice(SPACES.indexOf(s),1); delete byId[s.id]; layer.removeLayer(shapes[s.id]); delete shapes[s.id];
     editSel=null; editLayer.clearLayers(); refreshLabels(); refreshTabs(); showEdit(); document.getElementById("copymsg").textContent=" Removed "+s.id+"."; });
@@ -412,7 +415,7 @@ function setEdit(onoff){
 }
 document.getElementById("editToggle").onclick=()=>setEdit(!EDIT);
 const removed=[];
-function layoutJSON(){ return JSON.stringify({v:2, removed, spaces:SPACES.map(s=>({id:s.id,lot:s.lot,area:s.area,k:s.k,ll:[+s.ll[0].toFixed(7),+s.ll[1].toFixed(7)],rot:Math.round(s.rot*10)/10,size:s.size}))}); }
+function layoutJSON(){ return JSON.stringify({v:2, removed, spaces:SPACES.map(s=>({id:s.id,lot:s.lot,area:s.area,k:s.k,ll:[+s.ll[0].toFixed(7),+s.ll[1].toFixed(7)],rot:Math.round(s.rot*10)/10,size:s.size,na:!!s.na}))}); }
 window.layoutJSON=layoutJSON;
 let labelTick=false;
 function moveSpace(s, e, n, rot){
