@@ -54,6 +54,7 @@ main{flex:1;display:flex;min-height:0;position:relative}
 .sp-label.assigned{background:#1e1a17;color:#fff;border-color:#1e1a17}
 .sp-label::before{display:none}
 #gate{position:absolute;inset:0;z-index:1000;background:var(--paper);display:flex;align-items:center;justify-content:center;padding:24px;text-align:center}
+#gate[hidden]{display:none}
 #gate div{max-width:560px}
 #gate h2{font-size:28px;margin:0 0 10px}
 #gate p{margin:0 0 14px;font-size:19px;color:var(--muted)}
@@ -91,7 +92,7 @@ main{flex:1;display:flex;min-height:0;position:relative}
   <div id="editbar"></div>
   <div class="legend" id="legend"></div>
   <aside id="panel" aria-live="polite"></aside>
-  <div id="gate" hidden><div>
+  <div id="gate" hidden="hidden"><div>
     <h2>Zozobra parking desk</h2>
     <p id="gatemsg">Open this page from the private parking page on burnzozobra.com.</p>
   </div></div>
