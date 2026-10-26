@@ -105,6 +105,7 @@ main{flex:1;display:flex;min-height:0;position:relative}
 (function(){
 "use strict";
 const SPACES = window.PARKING_SPACES, LOTS = window.PARKING_LOTS, AREAS = window.PARKING_AREAS;
+SPACES.forEach(s=>{ s.ll0 = s.ll.slice(); });   // where each space was built, so a row can be slid to a dragged space
 let EDIT = /[?&]edit\b/.test(location.search);
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/1AXm9YveU1M64pZYLMQkp1KgFVgQ5NvIJMe18s_VqHGw/edit";
 
@@ -351,8 +352,9 @@ function showEdit(){
     const s=byId[editSel], same=SPACES.filter(x=>x.lot===s.lot && x.area===s.area).length;
     h+='Space <b>'+esc(editSel)+'</b> · angle <b id="angle">'+Math.round(s.rot)+'°</b><br>'
       +'<span class="egrp">Rotate: '+B("rl5","⟲ 5°")+B("rl1","⟲ 1°")+B("rr1","⟳ 1°")+B("rr5","⟳ 5°")+'</span><br>'
-      +'<span class="egrp">Nudge: '+B("nw","←")+B("nn","↑")+B("ns","↓")+B("ne","→")+' (2 ft; drag the pin for more)</span><br>'
-      +B("applyrow","Apply this angle to its whole row ("+same+" spaces)")+' '+B("desel","Done with this space");
+      +'<span class="egrp">Nudge this space: '+B("nw","←")+B("nn","↑")+B("ns","↓")+B("ne","→")+' (2 ft; drag the pin for more)</span><br>'
+      +'<span class="egrp">Move whole row ('+same+'): '+B("rw","←")+B("rn","↑")+B("rs","↓")+B("re","→")+' 2 ft · '+B("rw5","⇐")+B("rn5","⇑")+B("rs5","⇓")+B("re5","⇒")+' 10 ft</span><br>'
+      +B("applyrow","Apply this angle to the row")+' '+B("snaprow","Slide the row to where this space is")+' '+B("desel","Done with this space");
   } else {
     h+='Tap a space to rotate or nudge it. '+B("rotlotl","⟲ lot 1°")+B("rotlotr","⟳ lot 1°")+' turns the whole <b>'+esc(currentLot)+'</b> lot.';
   }
@@ -363,7 +365,16 @@ function showEdit(){
   const nudge=(e,n)=>{ if(!editSel) return; moveSpace(byId[editSel],e,n,0); editLayer.clearLayers(); select(editSel); };
   on("rl5",()=>rot(-5)); on("rl1",()=>rot(-1)); on("rr1",()=>rot(1)); on("rr5",()=>rot(5));
   on("nw",()=>nudge(-0.6,0)); on("ne",()=>nudge(0.6,0)); on("nn",()=>nudge(0,0.6)); on("ns",()=>nudge(0,-0.6));
-  on("applyrow",()=>{ const s=byId[editSel]; SPACES.filter(x=>x.lot===s.lot && x.area===s.area).forEach(x=>{ x.rot=s.rot; shapes[x.id].setLatLngs(footprint(x.ll,x.size,x.rot)); }); document.getElementById("copymsg").textContent=" Row set to "+Math.round(s.rot)+"°."; });
+  const rowOf=()=>{ const s=byId[editSel]; return SPACES.filter(x=>x.lot===s.lot && x.area===s.area); };
+  const moveRow=(e,n)=>{ rowOf().forEach(x=>moveSpace(x,e,n,0)); editLayer.clearLayers(); select(editSel); };
+  on("rw",()=>moveRow(-0.6,0)); on("re",()=>moveRow(0.6,0)); on("rn",()=>moveRow(0,0.6)); on("rs",()=>moveRow(0,-0.6));
+  on("rw5",()=>moveRow(-3,0)); on("re5",()=>moveRow(3,0)); on("rn5",()=>moveRow(0,3)); on("rs5",()=>moveRow(0,-3));
+  on("applyrow",()=>{ const s=byId[editSel]; rowOf().forEach(x=>{ x.rot=s.rot; shapes[x.id].setLatLngs(footprint(x.ll,x.size,x.rot)); }); document.getElementById("copymsg").textContent=" Row set to "+Math.round(s.rot)+"°."; });
+  /* Slide the row so it passes through the dragged space: shift every space by the offset between where this space was built and where it is now. */
+  on("snaprow",()=>{ const s=byId[editSel]; if(!s.ll0){ document.getElementById("copymsg").textContent=" Drag or nudge this space first, then slide the row to it."; return; }
+    const mLng=111320*Math.cos(s.ll[0]*Math.PI/180), e=(s.ll[1]-s.ll0[1])*mLng, n=(s.ll[0]-s.ll0[0])*111320;
+    rowOf().forEach(x=>{ if(x!==s) moveSpace(x,e,n,0); x.ll0=x.ll.slice(); });
+    document.getElementById("copymsg").textContent=" Row slid "+Math.round(Math.hypot(e,n)/FT)+" ft."; });
   on("desel",()=>{ shapes[editSel].setStyle(style(byId[editSel])); editSel=null; editLayer.clearLayers(); showEdit(); });
   on("rotlotl",()=>moveLot(0,0,-1)); on("rotlotr",()=>moveLot(0,0,1));
   on("copylayout",()=>{ const t=layoutJSON(); navigator.clipboard.writeText(t).then(()=>{ document.getElementById("copymsg").textContent=" Copied — paste it to Claude."; }).catch(()=>{ prompt("Copy this layout and paste it to Claude", t); }); });
