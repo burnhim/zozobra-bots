@@ -379,7 +379,7 @@ if(EDIT){
     else moveLot(east,north,rot);
   });
 }
-window.PARKING_API = { moveLot, moveSpace:(id,e,n,r)=>moveSpace(byId[id],e,n,r), goLot, setConfig:(c)=>{cfg=c; load();}, spaces:SPACES };
+window.PARKING_API = { map, moveLot, moveSpace:(id,e,n,r)=>moveSpace(byId[id],e,n,r), goLot, setConfig:(c)=>{cfg=c; load();}, spaces:SPACES };
 
 /* ---------- start ---------- */
 drawAll();
