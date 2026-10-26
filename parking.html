@@ -354,7 +354,8 @@ function showEdit(){
       +'<span class="egrp">Rotate: '+B("rl5","⟲ 5°")+B("rl1","⟲ 1°")+B("rr1","⟳ 1°")+B("rr5","⟳ 5°")+'</span><br>'
       +'<span class="egrp">Nudge this space: '+B("nw","←")+B("nn","↑")+B("ns","↓")+B("ne","→")+' (2 ft; drag the pin for more)</span><br>'
       +'<span class="egrp">Move whole row ('+same+'): '+B("rw","←")+B("rn","↑")+B("rs","↓")+B("re","→")+' 2 ft · '+B("rw5","⇐")+B("rn5","⇑")+B("rs5","⇓")+B("re5","⇒")+' 10 ft</span><br>'
-      +B("applyrow","Apply this angle to the row")+' '+B("snaprow","Slide the row to where this space is")+' '+B("desel","Done with this space");
+      +B("applyrow","Apply this angle to the row")+' '+B("snaprow","Slide the row to where this space is")+' '+B("straight","Straighten the row")+'<br>'
+      +B("addsp","＋ Add a space after this one")+' '+B("delsp","－ Remove this space")+' '+B("desel","Done with this space");
   } else {
     h+='Tap a space to rotate or nudge it. '+B("rotlotl","⟲ lot 1°")+B("rotlotr","⟳ lot 1°")+' turns the whole <b>'+esc(currentLot)+'</b> lot.';
   }
@@ -365,7 +366,29 @@ function showEdit(){
   const nudge=(e,n)=>{ if(!editSel) return; moveSpace(byId[editSel],e,n,0); editLayer.clearLayers(); select(editSel); };
   on("rl5",()=>rot(-5)); on("rl1",()=>rot(-1)); on("rr1",()=>rot(1)); on("rr5",()=>rot(5));
   on("nw",()=>nudge(-0.6,0)); on("ne",()=>nudge(0.6,0)); on("nn",()=>nudge(0,0.6)); on("ns",()=>nudge(0,-0.6));
-  const rowOf=()=>{ const s=byId[editSel]; return SPACES.filter(x=>x.lot===s.lot && x.area===s.area); };
+  const num=id=>parseInt(id.replace(/^[A-Z]+/,""),10)||0, pre=id=>id.replace(/\d+$/,"");
+  const rowOf=()=>{ const s=byId[editSel]; return SPACES.filter(x=>x.lot===s.lot && x.area===s.area).sort((a,b)=>num(a.id)-num(b.id)); };
+  const local=(ll,o)=>[(ll[1]-o[1])*111320*Math.cos(o[0]*Math.PI/180),(ll[0]-o[0])*111320];
+  on("straight",()=>{ const R=rowOf(); if(R.length<3) return; const o=R[0].ll, P=R.map(x=>local(x.ll,o));
+    const n=P.length, mx=P.reduce((a,p)=>a+p[0],0)/n, my=P.reduce((a,p)=>a+p[1],0)/n;
+    let sxx=0,sxy=0,syy=0; P.forEach(p=>{ const dx=p[0]-mx, dy=p[1]-my; sxx+=dx*dx; sxy+=dx*dy; syy+=dy*dy; });
+    const th=0.5*Math.atan2(2*sxy, sxx-syy), ux=Math.cos(th), uy=Math.sin(th);   // best-fit line through the row
+    const t=P.map(p=>(p[0]-mx)*ux+(p[1]-my)*uy), t0=Math.min(...t), t1=Math.max(...t), step=(t1-t0)/(n-1);
+    const rot=R[0].rot;
+    R.forEach((x,i)=>{ const tt=t0+i*step; const e=mx+tt*ux, nn=my+tt*uy; x.ll=[o[0]+nn/111320, o[1]+e/(111320*Math.cos(o[0]*Math.PI/180))]; x.rot=rot; shapes[x.id].setLatLngs(footprint(x.ll,x.size,x.rot)); });
+    refreshLabels(); editLayer.clearLayers(); select(editSel); document.getElementById("copymsg").textContent=" Row straightened, "+Math.round(step/FT*10)/10+" ft apart."; });
+  on("addsp",()=>{ const s=byId[editSel], R=rowOf(), i=R.indexOf(s);
+    const nb=R[i-1]||R[i+1]; let e=0,nn=0;
+    if(nb){ const d=local(s.ll, nb.ll); const L=Math.hypot(d[0],d[1])||1; const sgn=R[i-1]?1:-1; e=sgn*d[0]; nn=sgn*d[1]; }
+    else { const t=(s.rot+90)*Math.PI/180; e=9*FT*Math.sin(t); nn=9*FT*Math.cos(t); }
+    const p=pre(s.id), nextNum=Math.max(0,...SPACES.filter(x=>pre(x.id)===p).map(x=>num(x.id)), ...removed.filter(x=>pre(x)===p).map(num))+1;
+    const ns={id:p+nextNum, lot:s.lot, area:s.area, k:s.k, ll:shift(s.ll,e,nn), rot:s.rot, size:s.size.slice()}; ns.ll0=ns.ll.slice();
+    SPACES.splice(SPACES.indexOf(s)+1,0,ns); byId[ns.id]=ns;
+    const poly=L.polygon(footprint(ns.ll,ns.size,ns.rot), style(ns)).addTo(layer); poly.on("click",()=>{ if(EDIT){ select(ns.id); return; } open(ns.id); }); shapes[ns.id]=poly;
+    refreshLabels(); refreshTabs(); select(ns.id); document.getElementById("copymsg").textContent=" Added "+ns.id+"."; });
+  on("delsp",()=>{ const s=byId[editSel]; if(!confirm("Remove space "+s.id+" from the layout?")) return;
+    removed.push(s.id); SPACES.splice(SPACES.indexOf(s),1); delete byId[s.id]; layer.removeLayer(shapes[s.id]); delete shapes[s.id];
+    editSel=null; editLayer.clearLayers(); refreshLabels(); refreshTabs(); showEdit(); document.getElementById("copymsg").textContent=" Removed "+s.id+"."; });
   const moveRow=(e,n)=>{ rowOf().forEach(x=>moveSpace(x,e,n,0)); editLayer.clearLayers(); select(editSel); };
   on("rw",()=>moveRow(-0.6,0)); on("re",()=>moveRow(0.6,0)); on("rn",()=>moveRow(0,0.6)); on("rs",()=>moveRow(0,-0.6));
   on("rw5",()=>moveRow(-3,0)); on("re5",()=>moveRow(3,0)); on("rn5",()=>moveRow(0,3)); on("rs5",()=>moveRow(0,-3));
@@ -388,7 +411,8 @@ function setEdit(onoff){
   showEdit();
 }
 document.getElementById("editToggle").onclick=()=>setEdit(!EDIT);
-function layoutJSON(){ const o={}; SPACES.forEach(s=>o[s.id]=[+s.ll[0].toFixed(7),+s.ll[1].toFixed(7),Math.round(s.rot*10)/10]); return JSON.stringify(o); }
+const removed=[];
+function layoutJSON(){ return JSON.stringify({v:2, removed, spaces:SPACES.map(s=>({id:s.id,lot:s.lot,area:s.area,k:s.k,ll:[+s.ll[0].toFixed(7),+s.ll[1].toFixed(7)],rot:Math.round(s.rot*10)/10,size:s.size}))}); }
 window.layoutJSON=layoutJSON;
 let labelTick=false;
 function moveSpace(s, e, n, rot){
