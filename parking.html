@@ -172,8 +172,38 @@ function labelFor(s){
   return who ? s.id+" · "+who : s.id;
 }
 
+/* ---------- layout overrides: edits made on the map, kept in this browser and in the sheet's Layout tab ---------- */
+const BASE = window.PARKING_BASE || "0";          // stamp of parking-data.js; overrides made on an older base are ignored
+const LS_KEY = "zp-layout-" + BASE;
+let layoutDirty = false, layoutSavedAt = 0;
+function applyLayout(Lay){
+  if(!Lay || !Lay.spaces) return;
+  (Lay.removed||[]).forEach(id=>{ const i=SPACES.findIndex(s=>s.id===id); if(i>=0){ SPACES.splice(i,1); delete byId[id]; } if(!removed.includes(id)) removed.push(id); });
+  Lay.spaces.forEach(x=>{
+    let s=byId[x.id];
+    if(!s){ s={id:x.id, lot:x.lot, area:x.area, k:x.k, ll:x.ll, rot:x.rot, size:x.size||[18,9]}; SPACES.push(s); byId[s.id]=s; }
+    s.ll=x.ll.slice(); s.rot=x.rot; s.na=!!x.na; if(x.size) s.size=x.size.slice(); if(x.area) s.area=x.area; s.ll0=s.ll.slice();
+  });
+}
+function persistLocal(){
+  layoutDirty = true;
+  try{ localStorage.setItem(LS_KEY, JSON.stringify({t:Date.now(), layout:JSON.parse(layoutJSON())})); }catch(e){}
+  const el=document.getElementById("savestate"); if(el) el.textContent=" Edits kept in this browser — not yet saved to the sheet.";
+}
+function loadLocal(){ try{ const j=JSON.parse(localStorage.getItem(LS_KEY)||"null"); if(j&&j.layout){ applyLayout(j.layout); layoutDirty=true; return j.t||1; } }catch(e){} return 0; }
+async function saveLayoutToSheet(){
+  const el=document.getElementById("savestate");
+  if(!cfg){ if(el) el.textContent=" Open the map from the burnzozobra.com page to save to the sheet."; return; }
+  if(el) el.textContent=" Saving…";
+  try{ const res=await call({action:"layout", layout:JSON.parse(layoutJSON()), base:BASE}); layoutDirty=false; layoutSavedAt=Date.now();
+    try{ localStorage.removeItem(LS_KEY); }catch(e){}
+    if(el) el.textContent=" Saved to the sheet ("+(res.count||"")+" spaces). Claude can bake this in."; }
+  catch(e){ if(el) el.textContent=" Couldn't save: "+e.message; }
+}
+
 function drawAll(){
   layer.clearLayers(); labelLayer.clearLayers(); areaLayer.clearLayers();
+  for(const k in shapes) delete shapes[k];
   AREAS.forEach(a=>L.polygon(a.poly,{color:a.color, weight:2, fillColor:a.color, fillOpacity:.25, dashArray:"4,4"}).bindTooltip(a.t,{direction:"center", className:"sp-label", permanent:false}).addTo(areaLayer));
   SPACES.forEach(s=>{
     const p=L.polygon(footprint(s.ll, s.size, s.rot), style(s)).addTo(layer);
@@ -296,7 +326,9 @@ async function load(){
   try{
     const r=await fetch(cfg.endpoint+"?key="+encodeURIComponent(cfg.key)+"&action=list&t="+Date.now(), {cache:"no-store", redirect:"follow"});
     const j=await r.json(); if(!j.ok) throw new Error(j.error||"unknown error");
-    data=j.spaces||{}; SPACES.forEach(s=>restyleQuiet(s.id)); refreshLabels(); refreshTabs();
+    data=j.spaces||{};
+    if(j.layout && j.layout.base===BASE && (j.layout.t||0) > localT){ applyLayout(j.layout); localT=j.layout.t; layoutDirty=false; drawAll(); }
+    SPACES.forEach(s=>restyleQuiet(s.id)); refreshLabels(); refreshTabs();
     document.getElementById("gate").hidden=true;
   }catch(e){ gate("Couldn't reach the parking sheet: "+e.message); }
 }
@@ -342,7 +374,7 @@ function select(id){
   editSel=id; editLayer.clearLayers();
   const s=byId[id]; shapes[id].setStyle({weight:4,color:"#ffd43b"});
   const m=L.marker(s.ll,{draggable:true}).addTo(editLayer);
-  m.on("drag", e=>{ const p=e.target.getLatLng(); s.ll=[p.lat,p.lng]; shapes[id].setLatLngs(footprint(s.ll,s.size,s.rot)); if(!labelTick){ labelTick=true; requestAnimationFrame(()=>{ labelTick=false; refreshLabels(); }); } });
+  m.on("drag", e=>{ const p=e.target.getLatLng(); s.ll=[p.lat,p.lng]; shapes[id].setLatLngs(footprint(s.ll,s.size,s.rot)); touched(); });
   m.on("dragend", ()=>{ refreshLabels(); showEdit(); });
   showEdit();
 }
@@ -361,7 +393,7 @@ function showEdit(){
   } else {
     h+='Tap a space to rotate or nudge it. '+B("rotlotl","⟲ lot 1°")+B("rotlotr","⟳ lot 1°")+' turns the whole <b>'+esc(currentLot)+'</b> lot.';
   }
-  h+='<br>'+B("copylayout","Copy layout")+' '+B("editoff","Exit edit")+' <span id="copymsg"></span>';
+  h+='<br>'+B("savesheet","💾 Save layout to the sheet")+' '+B("copylayout","Copy layout")+' '+B("editoff","Exit edit")+'<br><span id="copymsg"></span><span id="savestate">'+(layoutDirty?" Edits kept in this browser — not yet saved to the sheet.":"")+'</span>';
   bar.innerHTML=h;
   const on=(id,fn)=>{ const el=document.getElementById(id); if(el) el.onclick=fn; };
   const rot=d=>{ if(!editSel) return; moveSpace(byId[editSel],0,0,d); document.getElementById("angle").textContent=Math.round(byId[editSel].rot)+"°"; };
@@ -378,7 +410,7 @@ function showEdit(){
     const t=P.map(p=>(p[0]-mx)*ux+(p[1]-my)*uy), t0=Math.min(...t), t1=Math.max(...t), step=(t1-t0)/(n-1);
     const rot=R[0].rot;
     R.forEach((x,i)=>{ const tt=t0+i*step; const e=mx+tt*ux, nn=my+tt*uy; x.ll=[o[0]+nn/111320, o[1]+e/(111320*Math.cos(o[0]*Math.PI/180))]; x.rot=rot; shapes[x.id].setLatLngs(footprint(x.ll,x.size,x.rot)); });
-    refreshLabels(); editLayer.clearLayers(); select(editSel); document.getElementById("copymsg").textContent=" Row straightened, "+Math.round(step/FT*10)/10+" ft apart."; });
+    refreshLabels(); persistLocal(); editLayer.clearLayers(); select(editSel); document.getElementById("copymsg").textContent=" Row straightened, "+Math.round(step/FT*10)/10+" ft apart."; });
   on("addsp",()=>{ const s=byId[editSel], R=rowOf(), i=R.indexOf(s);
     const nb=R[i-1]||R[i+1]; let e=0,nn=0;
     if(nb){ const d=local(s.ll, nb.ll); const L=Math.hypot(d[0],d[1])||1; const sgn=R[i-1]?1:-1; e=sgn*d[0]; nn=sgn*d[1]; }
@@ -387,24 +419,25 @@ function showEdit(){
     const ns={id:p+nextNum, lot:s.lot, area:s.area, k:s.k, ll:shift(s.ll,e,nn), rot:s.rot, size:s.size.slice()}; ns.ll0=ns.ll.slice();
     SPACES.splice(SPACES.indexOf(s)+1,0,ns); byId[ns.id]=ns;
     const poly=L.polygon(footprint(ns.ll,ns.size,ns.rot), style(ns)).addTo(layer); poly.on("click",()=>{ if(EDIT){ select(ns.id); return; } open(ns.id); }); shapes[ns.id]=poly;
-    refreshLabels(); refreshTabs(); select(ns.id); document.getElementById("copymsg").textContent=" Added "+ns.id+"."; });
-  on("navail",()=>{ const s=byId[editSel]; s.na=!s.na; shapes[s.id].setStyle(style(s)); shapes[s.id].setStyle({weight:4,color:"#ffd43b"}); refreshTabs(); showEdit(); document.getElementById("copymsg").textContent=" "+s.id+(s.na?" marked not available.":" available again."); });
+    refreshLabels(); refreshTabs(); persistLocal(); select(ns.id); document.getElementById("copymsg").textContent=" Added "+ns.id+"."; });
+  on("navail",()=>{ const s=byId[editSel]; s.na=!s.na; shapes[s.id].setStyle(style(s)); shapes[s.id].setStyle({weight:4,color:"#ffd43b"}); refreshTabs(); persistLocal(); showEdit(); document.getElementById("copymsg").textContent=" "+s.id+(s.na?" marked not available.":" available again."); });
   on("delsp",()=>{ const s=byId[editSel]; if(!confirm("Remove space "+s.id+" from the layout?")) return;
     removed.push(s.id); SPACES.splice(SPACES.indexOf(s),1); delete byId[s.id]; layer.removeLayer(shapes[s.id]); delete shapes[s.id];
-    editSel=null; editLayer.clearLayers(); refreshLabels(); refreshTabs(); showEdit(); document.getElementById("copymsg").textContent=" Removed "+s.id+"."; });
+    editSel=null; editLayer.clearLayers(); refreshLabels(); refreshTabs(); persistLocal(); showEdit(); document.getElementById("copymsg").textContent=" Removed "+s.id+"."; });
   const moveRow=(e,n)=>{ rowOf().forEach(x=>moveSpace(x,e,n,0)); editLayer.clearLayers(); select(editSel); };
   on("rw",()=>moveRow(-0.6,0)); on("re",()=>moveRow(0.6,0)); on("rn",()=>moveRow(0,0.6)); on("rs",()=>moveRow(0,-0.6));
   on("rw5",()=>moveRow(-3,0)); on("re5",()=>moveRow(3,0)); on("rn5",()=>moveRow(0,3)); on("rs5",()=>moveRow(0,-3));
-  on("applyrow",()=>{ const s=byId[editSel]; rowOf().forEach(x=>{ x.rot=s.rot; shapes[x.id].setLatLngs(footprint(x.ll,x.size,x.rot)); }); document.getElementById("copymsg").textContent=" Row set to "+Math.round(s.rot)+"°."; });
+  on("applyrow",()=>{ const s=byId[editSel]; rowOf().forEach(x=>{ x.rot=s.rot; shapes[x.id].setLatLngs(footprint(x.ll,x.size,x.rot)); }); persistLocal(); document.getElementById("copymsg").textContent=" Row set to "+Math.round(s.rot)+"°."; });
   /* Slide the row so it passes through the dragged space: shift every space by the offset between where this space was built and where it is now. */
   on("snaprow",()=>{ const s=byId[editSel]; if(!s.ll0){ document.getElementById("copymsg").textContent=" Drag or nudge this space first, then slide the row to it."; return; }
     const mLng=111320*Math.cos(s.ll[0]*Math.PI/180), e=(s.ll[1]-s.ll0[1])*mLng, n=(s.ll[0]-s.ll0[0])*111320;
     rowOf().forEach(x=>{ if(x!==s) moveSpace(x,e,n,0); x.ll0=x.ll.slice(); });
-    document.getElementById("copymsg").textContent=" Row slid "+Math.round(Math.hypot(e,n)/FT)+" ft."; });
+    persistLocal(); document.getElementById("copymsg").textContent=" Row slid "+Math.round(Math.hypot(e,n)/FT)+" ft."; });
   on("desel",()=>{ shapes[editSel].setStyle(style(byId[editSel])); editSel=null; editLayer.clearLayers(); showEdit(); });
   on("rotlotl",()=>moveLot(0,0,-1)); on("rotlotr",()=>moveLot(0,0,1));
   on("copylayout",()=>{ const t=layoutJSON(); navigator.clipboard.writeText(t).then(()=>{ document.getElementById("copymsg").textContent=" Copied — paste it to Claude."; }).catch(()=>{ prompt("Copy this layout and paste it to Claude", t); }); });
   on("editoff",()=>setEdit(false));
+  on("savesheet",saveLayoutToSheet);
 }
 function setEdit(onoff){
   EDIT=!!onoff; closePanel();
@@ -418,10 +451,11 @@ const removed=[];
 function layoutJSON(){ return JSON.stringify({v:2, removed, spaces:SPACES.map(s=>({id:s.id,lot:s.lot,area:s.area,k:s.k,ll:[+s.ll[0].toFixed(7),+s.ll[1].toFixed(7)],rot:Math.round(s.rot*10)/10,size:s.size,na:!!s.na}))}); }
 window.layoutJSON=layoutJSON;
 let labelTick=false;
+function touched(){ if(!labelTick){ labelTick=true; requestAnimationFrame(()=>{ labelTick=false; refreshLabels(); persistLocal(); }); } }
 function moveSpace(s, e, n, rot){
   if(rot){ s.rot=(s.rot+rot+360)%360; } else s.ll=shift(s.ll,e,n);
   shapes[s.id].setLatLngs(footprint(s.ll,s.size,s.rot));
-  if(!labelTick){ labelTick=true; requestAnimationFrame(()=>{ labelTick=false; refreshLabels(); }); }
+  touched();
 }
 function moveLot(e,n,rot){
   const sp=lotSpaces(currentLot); if(!sp.length) return;
@@ -453,6 +487,7 @@ if(EDIT) setEdit(true);
 window.PARKING_API = { map, moveLot, moveSpace:(id,e,n,r)=>moveSpace(byId[id],e,n,r), goLot, setConfig:(c)=>{cfg=c; load();}, spaces:SPACES };
 
 /* ---------- start ---------- */
+let localT = loadLocal();
 drawAll();
 goLot(/[?&]lot=([A-Z]+)/.test(location.search) ? RegExp.$1 : "A");
 })();
