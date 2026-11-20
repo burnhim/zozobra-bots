@@ -55,6 +55,8 @@ main{flex:1;display:flex;min-height:0;position:relative}
 .sp-label{background:rgba(255,255,255,.92);border:1px solid #333;border-radius:4px;padding:1px 5px;font-size:13px;font-weight:800;color:#1e1a17;white-space:nowrap;box-shadow:none}
 .sp-label.assigned{background:#1e1a17;color:#fff;border-color:#1e1a17}
 .sp-label::before{display:none}
+#loading{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:700;background:#fff;border:2px solid var(--line);border-radius:999px;padding:6px 16px;font-size:17px;font-weight:700;color:var(--ink);box-shadow:0 4px 14px rgba(0,0,0,.15)}
+#loading[hidden]{display:none}
 #gate{position:absolute;inset:0;z-index:1000;background:var(--paper);display:flex;align-items:center;justify-content:center;padding:24px;text-align:center}
 #gate[hidden]{display:none}
 #gate div{max-width:560px}
@@ -87,12 +89,14 @@ main{flex:1;display:flex;min-height:0;position:relative}
     <input id="q" type="search" placeholder="Find a name, plate or space" aria-label="Search">
     <button id="editToggle" type="button">Edit layout</button>
     <button id="roster" type="button">Download roster</button>
+    <button id="fullscreen" type="button">Full screen</button>
     <a class="btn" id="sheetlink" href="https://docs.google.com/spreadsheets/d/1AXm9YveU1M64pZYLMQkp1KgFVgQ5NvIJMe18s_VqHGw/edit" target="_blank" rel="noopener">Open the sheet</a>
   </div>
 </header>
 <main>
   <div id="map" role="application" aria-label="Parking map"></div>
   <div id="results"></div>
+  <div id="loading" hidden="hidden">Loading assignments…</div>
   <div id="editbar"></div>
   <div class="legend" id="legend"></div>
   <aside id="panel" aria-live="polite"></aside>
@@ -175,6 +179,7 @@ function labelFor(s){
 /* ---------- layout overrides: edits made on the map, kept in this browser and in the sheet's Layout tab ---------- */
 const BASE = window.PARKING_BASE || "0";          // stamp of parking-data.js; overrides made on an older base are ignored
 const LS_KEY = "zp-layout-" + BASE;
+const LC_KEY = "zp-layoutcache-" + BASE;      // last layout read from the sheet, so the boxes open in place
 let layoutDirty = false, layoutSavedAt = 0;
 function applyLayout(Lay){
   if(!Lay || !Lay.spaces) return;
@@ -317,20 +322,24 @@ async function release(id){
 /* ---------- endpoint ---------- */
 async function call(body){
   if(!cfg) throw new Error("not connected");
+  if(!(cfg.user||"").trim()) throw new Error("pick your name in Working as first");
   body.key=cfg.key; body.by=cfg.user||"";
   const r=await fetch(cfg.endpoint, {method:"POST", body:JSON.stringify(body), headers:{"Content-Type":"text/plain;charset=utf-8"}, redirect:"follow"});
   const j=await r.json(); if(!j.ok) throw new Error(j.error||"unknown error"); return j;
 }
+let loadedOnce = false;
 async function load(){
   if(!cfg) return;
+  const pill=document.getElementById("loading"); if(!loadedOnce) pill.hidden=false;
   try{
     const r=await fetch(cfg.endpoint+"?key="+encodeURIComponent(cfg.key)+"&action=list&t="+Date.now(), {cache:"no-store", redirect:"follow"});
     const j=await r.json(); if(!j.ok) throw new Error(j.error||"unknown error");
     data=j.spaces||{};
     if(j.layout && j.layout.base===BASE && (j.layout.t||0) > localT){ applyLayout(j.layout); localT=j.layout.t; layoutDirty=false; drawAll(); }
+    if(j.layout && j.layout.base===BASE){ try{ localStorage.setItem(LC_KEY, JSON.stringify(j.layout)); }catch(e){} }
     SPACES.forEach(s=>restyleQuiet(s.id)); refreshLabels(); refreshTabs();
-    document.getElementById("gate").hidden=true;
-  }catch(e){ gate("Couldn't reach the parking sheet: "+e.message); }
+    document.getElementById("gate").hidden=true; loadedOnce=true; pill.hidden=true;
+  }catch(e){ pill.hidden=true; gate("Couldn't reach the parking sheet: "+e.message); }
 }
 function restyleQuiet(id){ if(shapes[id]) shapes[id].setStyle(style(byId[id])); }
 function gate(text){ const g=document.getElementById("gate"); g.hidden=false; document.getElementById("gatemsg").textContent=text; }
@@ -338,10 +347,12 @@ function gate(text){ const g=document.getElementById("gate"); g.hidden=false; do
 /* Config comes from the burnzozobra.com page that embeds this map. */
 window.addEventListener("message", e=>{
   const d=e.data; if(!d || d.source!=="zozobra-parking-host" || !d.endpoint || !d.key) return;
-  cfg={endpoint:d.endpoint, key:d.key, user:d.user||""}; load();
+  const same = cfg && cfg.endpoint===d.endpoint && cfg.key===d.key;
+  cfg={endpoint:d.endpoint, key:d.key, user:d.user||""};
+  if(!same) load();
 });
 if(window.parent!==window) window.parent.postMessage({source:"zozobra-parking-map", ready:true}, "*");
-setTimeout(()=>{ if(!cfg && !EDIT) gate("Open this page from the private parking page on burnzozobra.com."); }, 2500);
+setTimeout(()=>{ if(!cfg && !EDIT && window.parent===window) gate("Open this page from the private parking page on burnzozobra.com."); }, 2500);
 /* Refresh assignments every two minutes so two people can work at once. */
 setInterval(()=>{ if(cfg && !selected) load(); }, 120000);
 
@@ -486,8 +497,20 @@ if(EDIT) setEdit(true);
 }
 window.PARKING_API = { map, moveLot, moveSpace:(id,e,n,r)=>moveSpace(byId[id],e,n,r), goLot, setConfig:(c)=>{cfg=c; load();}, spaces:SPACES };
 
+/* ---------- full screen ---------- */
+(function(){
+  const fb=document.getElementById("fullscreen"), root=document.documentElement;
+  const can=!!(root.requestFullscreen||root.webkitRequestFullscreen);
+  if(!can){ fb.hidden=true; return; }
+  const isFull=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
+  fb.onclick=()=>{ if(isFull()){ (document.exitFullscreen||document.webkitExitFullscreen).call(document); } else { (root.requestFullscreen||root.webkitRequestFullscreen).call(root); } };
+  const upd=()=>{ fb.textContent=isFull()?"Exit full screen":"Full screen"; setTimeout(()=>map.invalidateSize(),150); };
+  document.addEventListener("fullscreenchange",upd); document.addEventListener("webkitfullscreenchange",upd);
+})();
+
 /* ---------- start ---------- */
 let localT = loadLocal();
+if(!localT){ try{ const c=JSON.parse(localStorage.getItem(LC_KEY)||"null"); if(c && c.spaces){ applyLayout(c); localT=c.t||0; layoutDirty=false; } }catch(e){} }
 drawAll();
 goLot(/[?&]lot=([A-Z]+)/.test(location.search) ? RegExp.$1 : "A");
 })();
