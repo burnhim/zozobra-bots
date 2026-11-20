@@ -349,6 +349,7 @@ window.addEventListener("message", e=>{
   const d=e.data; if(!d || d.source!=="zozobra-parking-host" || !d.endpoint || !d.key) return;
   const same = cfg && cfg.endpoint===d.endpoint && cfg.key===d.key;
   cfg={endpoint:d.endpoint, key:d.key, user:d.user||""};
+  if(typeof refreshEditAccess==="function") refreshEditAccess();
   if(!same) load();
 });
 if(window.parent!==window) window.parent.postMessage({source:"zozobra-parking-map", ready:true}, "*");
@@ -458,6 +459,14 @@ function setEdit(onoff){
   showEdit();
 }
 document.getElementById("editToggle").onclick=()=>setEdit(!EDIT);
+/* Only Ray moves boxes: the Edit layout button shows when "Working as" is Ray. */
+const EMBEDDED = window.parent!==window;
+function refreshEditAccess(){
+  const ok = !EMBEDDED || (cfg && (cfg.user||"").trim().toLowerCase()==="ray");
+  document.getElementById("editToggle").hidden = !ok;
+  if(!ok && EDIT) setEdit(false);
+}
+refreshEditAccess();
 const removed=[];
 function layoutJSON(){ return JSON.stringify({v:2, removed, spaces:SPACES.map(s=>({id:s.id,lot:s.lot,area:s.area,k:s.k,ll:[+s.ll[0].toFixed(7),+s.ll[1].toFixed(7)],rot:Math.round(s.rot*10)/10,size:s.size,na:!!s.na}))}); }
 window.layoutJSON=layoutJSON;
@@ -501,7 +510,7 @@ window.PARKING_API = { map, moveLot, moveSpace:(id,e,n,r)=>moveSpace(byId[id],e,
 (function(){
   const fb=document.getElementById("fullscreen"), root=document.documentElement;
   const can=!!(root.requestFullscreen||root.webkitRequestFullscreen);
-  if(!can){ fb.hidden=true; return; }
+  if(!can || window.parent!==window){ fb.hidden=true; return; }
   const isFull=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
   fb.onclick=()=>{ if(isFull()){ (document.exitFullscreen||document.webkitExitFullscreen).call(document); } else { (root.requestFullscreen||root.webkitRequestFullscreen).call(root); } };
   const upd=()=>{ fb.textContent=isFull()?"Exit full screen":"Full screen"; setTimeout(()=>map.invalidateSize(),150); };
